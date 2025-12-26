@@ -1,71 +1,70 @@
-prometheus:
-  alertmanager:
-    enabled: false
+alertmanager:
+  enabled: false
 
-  # k3s hat diese Komponenten nicht als separate Pods
-  kubeControllerManager:
-    enabled: false
-  kubeEtcd:
-    enabled: false
-  kubeProxy:
-    enabled: false
-  kubeScheduler:
-    enabled: false
+# k3s hat diese Komponenten nicht als separate Pods
+kubeControllerManager:
+  enabled: false
+kubeEtcd:
+  enabled: false
+kubeProxy:
+  enabled: false
+kubeScheduler:
+  enabled: false
 
-  grafana:
-    admin:
-      existingSecret: grafana-secrets
-      userKey: admin-user
-      passwordKey: admin-password
-    grafana.ini:
-      auth.anonymous:
-        enabled: true
-        org_role: Viewer
-      server:
-        root_url: "%(protocol)s://%(domain)s/grafana"
-        serve_from_sub_path: true
-    ingress:
+grafana:
+  admin:
+    existingSecret: grafana-secrets
+    userKey: admin-user
+    passwordKey: admin-password
+  grafana.ini:
+    auth.anonymous:
       enabled: true
-      ingressClassName: traefik
-      hosts:
-        - ""
-      path: /grafana
-    persistence:
-      enabled: false
+      org_role: Viewer
+    server:
+      root_url: "%(protocol)s://%(domain)s/grafana"
+      serve_from_sub_path: true
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hosts:
+      - ""
+    path: /grafana
+  persistence:
+    enabled: false
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+kube-state-metrics:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+nodeExporter:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
+
+prometheus:
+  prometheusSpec:
+    retention: 24h
+    storageSpec: {}
     resources:
       requests:
-        cpu: 50m
-        memory: 128Mi
-      limits:
-        cpu: 200m
+        cpu: 100m
         memory: 256Mi
-
-  kube-state-metrics:
-    resources:
-      requests:
-        cpu: 10m
-        memory: 32Mi
       limits:
-        cpu: 100m
-        memory: 128Mi
-
-  nodeExporter:
-    resources:
-      requests:
-        cpu: 10m
-        memory: 32Mi
-      limits:
-        cpu: 100m
-        memory: 64Mi
-
-  prometheus:
-    prometheusSpec:
-      retention: 24h
-      storageSpec: {}
-      resources:
-        requests:
-          cpu: 100m
-          memory: 256Mi
-        limits:
-          cpu: 500m
-          memory: 512Mi
+        cpu: 500m
+        memory: 512Mi

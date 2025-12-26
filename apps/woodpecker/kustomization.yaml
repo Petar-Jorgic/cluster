@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: woodpecker
+
+resources:
+  - sealed-secrets.yaml
+
+helmCharts:
+  - name: woodpecker
+    repo: https://woodpecker-ci.org/charts
+    version: "3.1.0"
+    releaseName: woodpecker
+    namespace: woodpecker
+    valuesFile: values.yaml

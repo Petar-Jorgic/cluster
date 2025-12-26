@@ -1,0 +1,16 @@
+# Helm
+charts/
+Chart.lock
+
+# Secrets (unverschlüsselt)
+*.env
+*-secrets.yaml
+!sealed-secrets.yaml
+!**/sealed-secrets.yaml
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store

@@ -1,0 +1,8 @@
+woodpecker:
+  server:
+    env:
+      WOODPECKER_GITHUB: "true"
+      WOODPECKER_HOST: https://wood.pj-home-lab.com
+      WOODPECKER_OPEN: "false"
+    extraSecretNamesForEnvFrom:
+      - woodpecker-secrets

@@ -30,7 +30,9 @@ grafana:
       - ""
     path: /grafana
   persistence:
-    enabled: false
+    enabled: true
+    size: 1Gi
+    storageClassName: local-path
   resources:
     requests:
       cpu: 50m

@@ -4,9 +4,9 @@ Chart.lock
 
 # Secrets (unverschlüsselt)
 *.env
-*-secrets.yaml
-!sealed-secrets.yaml
-!**/sealed-secrets.yaml
+
+# SealedSecrets sind OK (verschlüsselt)
+# Alle *-secrets.yaml in base/secrets/ sind SealedSecrets
 
 # IDE
 .idea/

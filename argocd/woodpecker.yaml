@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: woodpecker
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    - repoURL: https://woodpecker-ci.org/charts
+      chart: woodpecker
+      targetRevision: "3.1.0"
+      helm:
+        valueFiles:
+          - $values/apps/woodpecker/values.yaml
+    - repoURL: https://github.com/Petar-Jorgic/cluster.git
+      targetRevision: HEAD
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: woodpecker
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

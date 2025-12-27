@@ -1,0 +1,195 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards-custom
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  kiosk-home.json: |
+    {
+      "annotations": {"list": []},
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 0,
+      "id": null,
+      "links": [],
+      "liveNow": false,
+      "panels": [
+        {
+          "type": "stat",
+          "title": "",
+          "gridPos": {"h": 2, "w": 24, "x": 0, "y": 0},
+          "options": {"textMode": "name", "colorMode": "none", "graphMode": "none", "justifyMode": "center"},
+          "fieldConfig": {"defaults": {"mappings": [], "thresholds": {"mode": "absolute", "steps": []}, "displayName": "🖥️ HOMELAB STATUS"}, "overrides": []},
+          "targets": [{"expr": "1", "refId": "A"}]
+        },
+        {
+          "type": "gauge",
+          "title": "CPU",
+          "gridPos": {"h": 6, "w": 6, "x": 0, "y": 2},
+          "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "mappings": [], "thresholds": {"mode": "percentage", "steps": [{"color": "#73BF69", "value": null}, {"color": "#FF9830", "value": 60}, {"color": "#F2495C", "value": 85}]}, "unit": "percentunit", "min": 0, "max": 1}, "overrides": []},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "orientation": "auto", "showThresholdLabels": false, "showThresholdMarkers": true},
+          "targets": [{"expr": "1 - avg(rate(node_cpu_seconds_total{mode=\"idle\"}[5m]))", "refId": "A"}]
+        },
+        {
+          "type": "gauge",
+          "title": "Memory",
+          "gridPos": {"h": 6, "w": 6, "x": 6, "y": 2},
+          "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "mappings": [], "thresholds": {"mode": "percentage", "steps": [{"color": "#73BF69", "value": null}, {"color": "#FF9830", "value": 60}, {"color": "#F2495C", "value": 85}]}, "unit": "percentunit", "min": 0, "max": 1}, "overrides": []},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "orientation": "auto", "showThresholdLabels": false, "showThresholdMarkers": true},
+          "targets": [{"expr": "1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)", "refId": "A"}]
+        },
+        {
+          "type": "gauge",
+          "title": "Disk /",
+          "gridPos": {"h": 6, "w": 6, "x": 12, "y": 2},
+          "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "mappings": [], "thresholds": {"mode": "percentage", "steps": [{"color": "#73BF69", "value": null}, {"color": "#FF9830", "value": 70}, {"color": "#F2495C", "value": 90}]}, "unit": "percentunit", "min": 0, "max": 1}, "overrides": []},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "orientation": "auto", "showThresholdLabels": false, "showThresholdMarkers": true},
+          "targets": [{"expr": "1 - (node_filesystem_avail_bytes{mountpoint=\"/\"} / node_filesystem_size_bytes{mountpoint=\"/\"})", "refId": "A"}]
+        },
+        {
+          "type": "stat",
+          "title": "Uptime",
+          "gridPos": {"h": 6, "w": 6, "x": 18, "y": 2},
+          "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "#73BF69", "value": null}]}, "unit": "dtdurations"}, "overrides": []},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "none", "justifyMode": "center", "textMode": "auto"},
+          "targets": [{"expr": "time() - node_boot_time_seconds", "refId": "A"}]
+        },
+        {
+          "type": "stat",
+          "title": "RAM Total",
+          "gridPos": {"h": 3, "w": 4, "x": 0, "y": 8},
+          "fieldConfig": {"defaults": {"color": {"mode": "fixed", "fixedColor": "text"}, "unit": "bytes", "thresholds": {"mode": "absolute", "steps": [{"color": "text", "value": null}]}}, "overrides": []},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "none", "justifyMode": "center", "textMode": "auto"},
+          "targets": [{"expr": "node_memory_MemTotal_bytes", "refId": "A"}]
+        },
+        {
+          "type": "stat",
+          "title": "RAM Used",
+          "gridPos": {"h": 3, "w": 4, "x": 4, "y": 8},
+          "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "unit": "bytes", "thresholds": {"mode": "absolute", "steps": [{"color": "#73BF69", "value": null}, {"color": "#FF9830", "value": 20000000000}, {"color": "#F2495C", "value": 28000000000}]}}, "overrides": []},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "none", "justifyMode": "center", "textMode": "auto"},
+          "targets": [{"expr": "node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes", "refId": "A"}]
+        },
+        {
+          "type": "stat",
+          "title": "Pods Running",
+          "gridPos": {"h": 3, "w": 4, "x": 8, "y": 8},
+          "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "#73BF69", "value": null}]}}, "overrides": []},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "none", "justifyMode": "center", "textMode": "auto"},
+          "targets": [{"expr": "count(kube_pod_status_phase{phase=\"Running\"})", "refId": "A"}]
+        },
+        {
+          "type": "stat",
+          "title": "Network In",
+          "gridPos": {"h": 3, "w": 4, "x": 12, "y": 8},
+          "fieldConfig": {"defaults": {"color": {"mode": "fixed", "fixedColor": "#5794F2"}, "unit": "bps", "thresholds": {"mode": "absolute", "steps": [{"color": "#5794F2", "value": null}]}}, "overrides": []},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "area", "justifyMode": "center", "textMode": "auto"},
+          "targets": [{"expr": "sum(rate(node_network_receive_bytes_total{device!~\"lo|veth.*|cni.*|flannel.*\"}[5m])) * 8", "refId": "A"}]
+        },
+        {
+          "type": "stat",
+          "title": "Network Out",
+          "gridPos": {"h": 3, "w": 4, "x": 16, "y": 8},
+          "fieldConfig": {"defaults": {"color": {"mode": "fixed", "fixedColor": "#B877D9"}, "unit": "bps", "thresholds": {"mode": "absolute", "steps": [{"color": "#B877D9", "value": null}]}}, "overrides": []},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "area", "justifyMode": "center", "textMode": "auto"},
+          "targets": [{"expr": "sum(rate(node_network_transmit_bytes_total{device!~\"lo|veth.*|cni.*|flannel.*\"}[5m])) * 8", "refId": "A"}]
+        },
+        {
+          "type": "stat",
+          "title": "Load 1m",
+          "gridPos": {"h": 3, "w": 4, "x": 20, "y": 8},
+          "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "decimals": 2, "thresholds": {"mode": "absolute", "steps": [{"color": "#73BF69", "value": null}, {"color": "#FF9830", "value": 4}, {"color": "#F2495C", "value": 8}]}}, "overrides": []},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "none", "justifyMode": "center", "textMode": "auto"},
+          "targets": [{"expr": "node_load1", "refId": "A"}]
+        },
+        {
+          "type": "row",
+          "title": "Services",
+          "gridPos": {"h": 1, "w": 24, "x": 0, "y": 11},
+          "collapsed": false
+        },
+        {
+          "type": "stat",
+          "title": "Immich",
+          "gridPos": {"h": 4, "w": 4, "x": 0, "y": 12},
+          "fieldConfig": {"defaults": {"mappings": [{"type": "value", "options": {"1": {"text": "UP", "color": "#73BF69"}}}, {"type": "value", "options": {"0": {"text": "DOWN", "color": "#F2495C"}}}], "thresholds": {"mode": "absolute", "steps": [{"color": "#F2495C", "value": null}, {"color": "#73BF69", "value": 1}]}}, "overrides": []},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "background", "graphMode": "none", "justifyMode": "center", "textMode": "auto"},
+          "targets": [{"expr": "kube_pod_status_phase{namespace=\"immich\", pod=~\"immich-server.*\", phase=\"Running\"}", "refId": "A"}]
+        },
+        {
+          "type": "stat",
+          "title": "Immich ML",
+          "gridPos": {"h": 4, "w": 4, "x": 4, "y": 12},
+          "fieldConfig": {"defaults": {"mappings": [{"type": "value", "options": {"1": {"text": "UP", "color": "#73BF69"}}}, {"type": "value", "options": {"0": {"text": "DOWN", "color": "#F2495C"}}}], "thresholds": {"mode": "absolute", "steps": [{"color": "#F2495C", "value": null}, {"color": "#73BF69", "value": 1}]}}, "overrides": []},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "background", "graphMode": "none", "justifyMode": "center", "textMode": "auto"},
+          "targets": [{"expr": "kube_pod_status_phase{namespace=\"immich\", pod=~\"immich-machine-learning.*\", phase=\"Running\"}", "refId": "A"}]
+        },
+        {
+          "type": "stat",
+          "title": "ArgoCD",
+          "gridPos": {"h": 4, "w": 4, "x": 8, "y": 12},
+          "fieldConfig": {"defaults": {"mappings": [{"type": "value", "options": {"1": {"text": "UP", "color": "#73BF69"}}}, {"type": "value", "options": {"0": {"text": "DOWN", "color": "#F2495C"}}}], "thresholds": {"mode": "absolute", "steps": [{"color": "#F2495C", "value": null}, {"color": "#73BF69", "value": 1}]}}, "overrides": []},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "background", "graphMode": "none", "justifyMode": "center", "textMode": "auto"},
+          "targets": [{"expr": "kube_pod_status_phase{namespace=\"argocd\", pod=~\"argocd-server.*\", phase=\"Running\"}", "refId": "A"}]
+        },
+        {
+          "type": "stat",
+          "title": "Cloudflare",
+          "gridPos": {"h": 4, "w": 4, "x": 12, "y": 12},
+          "fieldConfig": {"defaults": {"mappings": [{"type": "value", "options": {"1": {"text": "UP", "color": "#73BF69"}}}, {"type": "value", "options": {"0": {"text": "DOWN", "color": "#F2495C"}}}], "thresholds": {"mode": "absolute", "steps": [{"color": "#F2495C", "value": null}, {"color": "#73BF69", "value": 1}]}}, "overrides": []},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "background", "graphMode": "none", "justifyMode": "center", "textMode": "auto"},
+          "targets": [{"expr": "kube_pod_status_phase{namespace=\"cloudflare\", pod=~\"cloudflared.*\", phase=\"Running\"}", "refId": "A"}]
+        },
+        {
+          "type": "stat",
+          "title": "Prometheus",
+          "gridPos": {"h": 4, "w": 4, "x": 16, "y": 12},
+          "fieldConfig": {"defaults": {"mappings": [{"type": "value", "options": {"1": {"text": "UP", "color": "#73BF69"}}}, {"type": "value", "options": {"0": {"text": "DOWN", "color": "#F2495C"}}}], "thresholds": {"mode": "absolute", "steps": [{"color": "#F2495C", "value": null}, {"color": "#73BF69", "value": 1}]}}, "overrides": []},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "background", "graphMode": "none", "justifyMode": "center", "textMode": "auto"},
+          "targets": [{"expr": "kube_pod_status_phase{namespace=\"monitoring\", pod=~\"prometheus-.*\", phase=\"Running\"}", "refId": "A"}]
+        },
+        {
+          "type": "stat",
+          "title": "Woodpecker",
+          "gridPos": {"h": 4, "w": 4, "x": 20, "y": 12},
+          "fieldConfig": {"defaults": {"mappings": [{"type": "value", "options": {"1": {"text": "UP", "color": "#73BF69"}}}, {"type": "value", "options": {"0": {"text": "DOWN", "color": "#F2495C"}}}], "thresholds": {"mode": "absolute", "steps": [{"color": "#F2495C", "value": null}, {"color": "#73BF69", "value": 1}]}}, "overrides": []},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "background", "graphMode": "none", "justifyMode": "center", "textMode": "auto"},
+          "targets": [{"expr": "kube_pod_status_phase{namespace=\"woodpecker\", pod=~\"woodpecker-server.*\", phase=\"Running\"}", "refId": "A"}]
+        },
+        {
+          "type": "row",
+          "title": "Performance",
+          "gridPos": {"h": 1, "w": 24, "x": 0, "y": 16},
+          "collapsed": false
+        },
+        {
+          "type": "timeseries",
+          "title": "CPU Usage",
+          "gridPos": {"h": 6, "w": 12, "x": 0, "y": 17},
+          "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 20, "gradientMode": "opacity", "showPoints": "never", "lineWidth": 2}, "unit": "percentunit", "min": 0, "max": 1}, "overrides": []},
+          "options": {"legend": {"displayMode": "hidden"}, "tooltip": {"mode": "single"}},
+          "targets": [{"expr": "1 - avg(rate(node_cpu_seconds_total{mode=\"idle\"}[5m]))", "legendFormat": "CPU", "refId": "A"}]
+        },
+        {
+          "type": "timeseries",
+          "title": "Memory Usage",
+          "gridPos": {"h": 6, "w": 12, "x": 12, "y": 17},
+          "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 20, "gradientMode": "opacity", "showPoints": "never", "lineWidth": 2}, "unit": "bytes"}, "overrides": []},
+          "options": {"legend": {"displayMode": "hidden"}, "tooltip": {"mode": "single"}},
+          "targets": [{"expr": "node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes", "legendFormat": "Used", "refId": "A"}, {"expr": "node_memory_MemTotal_bytes", "legendFormat": "Total", "refId": "B"}]
+        }
+      ],
+      "refresh": "10s",
+      "schemaVersion": 38,
+      "style": "dark",
+      "tags": ["kiosk", "home"],
+      "templating": {"list": []},
+      "time": {"from": "now-1h", "to": "now"},
+      "timepicker": {"hidden": true},
+      "timezone": "browser",
+      "title": "Homelab Kiosk",
+      "uid": "homelab-kiosk",
+      "version": 1
+    }

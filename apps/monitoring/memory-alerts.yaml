@@ -1,0 +1,39 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: memory-alerts
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  groups:
+  - name: memory
+    rules:
+    - alert: PodMemoryHigh
+      expr: |
+        (container_memory_usage_bytes{container!=""} / container_spec_memory_limit_bytes{container!=""}) > 0.8
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Pod {{ $labels.pod }} nutzt >80% Memory"
+        description: "{{ $labels.pod }} in {{ $labels.namespace }} nutzt {{ $value | humanizePercentage }} des Limits"
+
+    - alert: PodMemoryCritical
+      expr: |
+        (container_memory_usage_bytes{container!=""} / container_spec_memory_limit_bytes{container!=""}) > 0.9
+      for: 2m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Pod {{ $labels.pod }} kurz vor OOM!"
+        description: "{{ $labels.pod }} nutzt {{ $value | humanizePercentage }} - OOM droht!"
+
+    - alert: NodeMemoryHigh
+      expr: |
+        (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) > 0.85
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Node {{ $labels.instance }} Memory >85%"

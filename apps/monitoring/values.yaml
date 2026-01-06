@@ -16,6 +16,8 @@ grafana:
     existingSecret: grafana-secrets
     userKey: admin-user
     passwordKey: admin-password
+  assertNoLeakedSecrets: false
+  envFromSecret: grafana-postgres-secret
   grafana.ini:
     auth.anonymous:
       enabled: true
@@ -23,6 +25,13 @@ grafana:
     server:
       root_url: "%(protocol)s://%(domain)s/grafana"
       serve_from_sub_path: true
+    database:
+      type: postgres
+      host: grafana-postgres.monitoring.svc.cluster.local:5432
+      name: grafana
+      user: grafana
+      password: $__env{GF_DATABASE_PASSWORD}
+      ssl_mode: disable
   sidecar:
     dashboards:
       enabled: true
@@ -42,11 +51,11 @@ grafana:
     storageClassName: local-path
   resources:
     requests:
-      cpu: 50m
-      memory: 128Mi
-    limits:
-      cpu: 200m
+      cpu: 100m
       memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
 
 kube-state-metrics:
   resources:

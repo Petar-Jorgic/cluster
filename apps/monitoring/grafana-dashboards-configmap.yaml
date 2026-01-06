@@ -199,7 +199,7 @@ data:
           "targets": [{"expr": "node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes", "legendFormat": "Used", "refId": "A", "datasource": {"type": "prometheus", "uid": "prometheus"}}, {"expr": "node_memory_MemTotal_bytes", "legendFormat": "Total", "refId": "B", "datasource": {"type": "prometheus", "uid": "prometheus"}}]
         }
       ],
-      "refresh": "10s",
+      "refresh": "30s",
       "schemaVersion": 38,
       "style": "dark",
       "tags": ["kiosk", "home"],

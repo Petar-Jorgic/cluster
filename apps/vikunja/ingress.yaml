@@ -21,3 +21,13 @@ spec:
                 name: vikunja
                 port:
                   number: 3456
+    - host: vikunja.pj-home-lab.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: vikunja
+                port:
+                  number: 3456

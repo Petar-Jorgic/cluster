@@ -32,6 +32,11 @@ spec:
               value: "Europe/Berlin"
             - name: VIKUNJA_SERVICE_ENABLEREGISTRATION
               value: "false"
+            - name: VIKUNJA_SERVICE_JWTSECRET
+              valueFrom:
+                secretKeyRef:
+                  name: vikunja-secrets
+                  key: jwt-secret
           ports:
             - name: http
               containerPort: 3456

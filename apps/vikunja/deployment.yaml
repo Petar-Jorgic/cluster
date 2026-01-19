@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vikunja
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: vikunja
+    app.kubernetes.io/part-of: vikunja
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/managed-by: kustomize
+      app.kubernetes.io/name: vikunja
+      app.kubernetes.io/part-of: vikunja
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/managed-by: kustomize
+        app.kubernetes.io/name: vikunja
+        app.kubernetes.io/part-of: vikunja
+    spec:
+      containers:
+        - name: vikunja
+          image: vikunja/vikunja:latest
+          env:
+            - name: VIKUNJA_SERVICE_PUBLICURL
+              value: "https://vikunja.local"
+            - name: VIKUNJA_SERVICE_TIMEZONE
+              value: "Europe/Berlin"
+          ports:
+            - name: http
+              containerPort: 3456
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - name: data
+              mountPath: /app/vikunja/files
+            - name: data
+              mountPath: /db
+              subPath: db
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: vikunja-data

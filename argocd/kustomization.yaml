@@ -8,4 +8,5 @@ resources:
   - monitoring.yaml
   - cloudflare.yaml
   - woodpecker.yaml
+  - vikunja.yaml
   # - arr-stack.yaml  # Deaktiviert - läuft auf Proxmox

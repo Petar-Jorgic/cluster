@@ -27,7 +27,7 @@ spec:
           image: vikunja/vikunja:latest
           env:
             - name: VIKUNJA_SERVICE_PUBLICURL
-              value: "https://vikunja.pj-home-lab.com"
+              value: "https://vikunja.local"
             - name: VIKUNJA_SERVICE_TIMEZONE
               value: "Europe/Berlin"
             - name: VIKUNJA_SERVICE_ENABLEREGISTRATION

@@ -181,22 +181,40 @@ data:
           "collapsed": false
         },
         {
-          "type": "timeseries",
-          "title": "CPU Usage",
-          "gridPos": {"h": 6, "w": 12, "x": 0, "y": 17},
+          "type": "stat",
+          "title": "CPU Avg 5m",
+          "gridPos": {"h": 4, "w": 6, "x": 0, "y": 17},
           "datasource": {"type": "prometheus", "uid": "prometheus"},
-          "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 20, "gradientMode": "opacity", "showPoints": "never", "lineWidth": 2}, "unit": "percentunit", "min": 0, "max": 1}, "overrides": []},
-          "options": {"legend": {"displayMode": "hidden"}, "tooltip": {"mode": "single"}},
-          "targets": [{"expr": "1 - avg(rate(node_cpu_seconds_total{mode=\"idle\"}[5m]))", "legendFormat": "CPU", "refId": "A", "datasource": {"type": "prometheus", "uid": "prometheus"}}]
+          "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "unit": "percentunit", "thresholds": {"mode": "absolute", "steps": [{"color": "#73BF69", "value": null}, {"color": "#FF9830", "value": 0.6}, {"color": "#F2495C", "value": 0.85}]}}, "overrides": []},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "none", "justifyMode": "center", "textMode": "auto"},
+          "targets": [{"expr": "1 - avg(rate(node_cpu_seconds_total{mode=\"idle\"}[5m]))", "refId": "A", "datasource": {"type": "prometheus", "uid": "prometheus"}}]
         },
         {
-          "type": "timeseries",
-          "title": "Memory Usage",
-          "gridPos": {"h": 6, "w": 12, "x": 12, "y": 17},
+          "type": "stat",
+          "title": "Mem Used",
+          "gridPos": {"h": 4, "w": 6, "x": 6, "y": 17},
           "datasource": {"type": "prometheus", "uid": "prometheus"},
-          "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 20, "gradientMode": "opacity", "showPoints": "never", "lineWidth": 2}, "unit": "bytes"}, "overrides": []},
-          "options": {"legend": {"displayMode": "hidden"}, "tooltip": {"mode": "single"}},
-          "targets": [{"expr": "node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes", "legendFormat": "Used", "refId": "A", "datasource": {"type": "prometheus", "uid": "prometheus"}}, {"expr": "node_memory_MemTotal_bytes", "legendFormat": "Total", "refId": "B", "datasource": {"type": "prometheus", "uid": "prometheus"}}]
+          "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "unit": "bytes", "thresholds": {"mode": "absolute", "steps": [{"color": "#73BF69", "value": null}, {"color": "#FF9830", "value": 20000000000}, {"color": "#F2495C", "value": 28000000000}]}}, "overrides": []},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "none", "justifyMode": "center", "textMode": "auto"},
+          "targets": [{"expr": "node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes", "refId": "A", "datasource": {"type": "prometheus", "uid": "prometheus"}}]
+        },
+        {
+          "type": "stat",
+          "title": "Disk Used",
+          "gridPos": {"h": 4, "w": 6, "x": 12, "y": 17},
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "unit": "percentunit", "thresholds": {"mode": "absolute", "steps": [{"color": "#73BF69", "value": null}, {"color": "#FF9830", "value": 0.7}, {"color": "#F2495C", "value": 0.9}]}}, "overrides": []},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "none", "justifyMode": "center", "textMode": "auto"},
+          "targets": [{"expr": "1 - (node_filesystem_avail_bytes{mountpoint=\"/\"} / node_filesystem_size_bytes{mountpoint=\"/\"})", "refId": "A", "datasource": {"type": "prometheus", "uid": "prometheus"}}]
+        },
+        {
+          "type": "stat",
+          "title": "Swap Used",
+          "gridPos": {"h": 4, "w": 6, "x": 18, "y": 17},
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "unit": "bytes", "thresholds": {"mode": "absolute", "steps": [{"color": "#73BF69", "value": null}, {"color": "#FF9830", "value": 500000000}, {"color": "#F2495C", "value": 1000000000}]}}, "overrides": []},
+          "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "value", "graphMode": "none", "justifyMode": "center", "textMode": "auto"},
+          "targets": [{"expr": "node_memory_SwapTotal_bytes - node_memory_SwapFree_bytes", "refId": "A", "datasource": {"type": "prometheus", "uid": "prometheus"}}]
         }
       ],
       "refresh": "5m",

@@ -9,4 +9,5 @@ resources:
   - cloudflare.yaml
   - woodpecker.yaml
   - vikunja.yaml
+  - jellyfin.yaml
   # - arr-stack.yaml  # Deaktiviert - läuft auf Proxmox

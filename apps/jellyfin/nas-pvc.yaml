@@ -13,7 +13,7 @@ spec:
   storageClassName: nfs-jellyfin
   nfs:
     server: 192.168.1.162
-    path: /volume1/docker/arr-stack
+    path: /volume1/docker
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: jellyfin-nas-pv
+  labels:
+    app.kubernetes.io/part-of: jellyfin
+spec:
+  capacity:
+    storage: 500Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-jellyfin
+  nfs:
+    server: 192.168.1.162
+    path: /volume1/docker/media
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyfin-media
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/part-of: jellyfin
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs-jellyfin
+  resources:
+    requests:
+      storage: 500Gi
+  volumeName: jellyfin-nas-pv

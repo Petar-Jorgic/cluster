@@ -10,4 +10,5 @@ resources:
   - woodpecker.yaml
   - vikunja.yaml
   - jellyfin.yaml
+  - it-tools.yaml
   # - arr-stack.yaml  # Deaktiviert - läuft auf Proxmox

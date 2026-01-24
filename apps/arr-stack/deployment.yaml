@@ -25,7 +25,6 @@ spec:
               add:
                 - NET_ADMIN
           ports:
-            - containerPort: 8181  # sabnzbd
             - containerPort: 8080  # qbittorrent
             - containerPort: 9696  # prowlarr
             - containerPort: 7878  # radarr
@@ -90,37 +89,6 @@ spec:
             limits:
               cpu: 500m
               memory: 256Mi
-
-        # SABnzbd - Usenet downloader
-        - name: sabnzbd
-          image: linuxserver/sabnzbd:latest
-          env:
-            - name: PUID
-              value: "0"
-            - name: PGID
-              value: "0"
-            - name: TZ
-              value: "Europe/Berlin"
-          volumeMounts:
-            - name: config
-              mountPath: /config
-              subPath: sabnzbd
-            - name: nas
-              mountPath: /downloads
-              subPath: arr-stack/downloads/usenet
-            - name: nas
-              mountPath: /movies
-              subPath: arr/Plex/film
-            - name: nas
-              mountPath: /tv
-              subPath: arr/Plex/TV
-          resources:
-            requests:
-              cpu: 100m
-              memory: 256Mi
-            limits:
-              cpu: 1000m
-              memory: 1Gi
 
         # qBittorrent - Torrent client
         - name: qbittorrent

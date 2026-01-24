@@ -106,17 +106,6 @@ spec:
                 name: qbittorrent
                 port:
                   number: 8080
-    # SABnzbd
-    - host: sabnzbd.local
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: sabnzbd
-                port:
-                  number: 8181
     # Bazarr
     - host: bazarr.local
       http:

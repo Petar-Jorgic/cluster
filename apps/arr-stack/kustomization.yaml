@@ -4,9 +4,8 @@ kind: Kustomization
 namespace: arr-stack
 
 resources:
-  - pvcs.yaml
-  - nas-pvc.yaml
   - deployment.yaml
   - services.yaml
   - ingress.yaml
-  - sealed-secrets.yaml
+  - pvc.yaml
+  # secrets.yaml - apply manually, don't commit to git!

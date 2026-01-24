@@ -6,41 +6,12 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/part-of: arr-stack
   annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
   ingressClassName: traefik
   rules:
-    - host: qbit.local
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: arr-stack
-                port:
-                  number: 8080
-    - host: sabnzbd.local
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: arr-stack
-                port:
-                  number: 8085
-    - host: prowlarr.local
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: arr-stack
-                port:
-                  number: 9696
+    # Sonarr
     - host: sonarr.local
       http:
         paths:
@@ -48,9 +19,20 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: arr-stack
+                name: sonarr
                 port:
                   number: 8989
+    - host: sonarr.pj-home-lab.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: sonarr
+                port:
+                  number: 8989
+    # Radarr
     - host: radarr.local
       http:
         paths:
@@ -58,19 +40,41 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: arr-stack
+                name: radarr
                 port:
                   number: 7878
-    - host: bazarr.local
+    - host: radarr.pj-home-lab.com
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: arr-stack
+                name: radarr
                 port:
-                  number: 6767
+                  number: 7878
+    # Prowlarr
+    - host: prowlarr.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: prowlarr
+                port:
+                  number: 9696
+    - host: prowlarr.pj-home-lab.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: prowlarr
+                port:
+                  number: 9696
+    # Jellyseerr
     - host: jellyseerr.local
       http:
         paths:
@@ -81,3 +85,56 @@ spec:
                 name: jellyseerr
                 port:
                   number: 5055
+    - host: requests.pj-home-lab.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: jellyseerr
+                port:
+                  number: 5055
+    # qBittorrent
+    - host: qbittorrent.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: qbittorrent
+                port:
+                  number: 8080
+    # SABnzbd
+    - host: sabnzbd.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: sabnzbd
+                port:
+                  number: 8181
+    # Bazarr
+    - host: bazarr.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: bazarr
+                port:
+                  number: 6767
+    - host: bazarr.pj-home-lab.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: bazarr
+                port:
+                  number: 6767

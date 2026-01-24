@@ -1,0 +1,86 @@
+# Config storage for all arr apps
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: arr-config-pv
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  nfs:
+    server: 192.168.1.162
+    path: /volume1/docker/arr/config
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: arr-config-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 20Gi
+  volumeName: arr-config-pv
+  storageClassName: ""
+---
+# Media storage (Plex library)
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: arr-media-pv
+spec:
+  capacity:
+    storage: 1Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  nfs:
+    server: 192.168.1.162
+    path: /volume1/docker/arr
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: arr-media-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Ti
+  volumeName: arr-media-pv
+  storageClassName: ""
+---
+# Downloads storage
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: arr-downloads-pv
+spec:
+  capacity:
+    storage: 500Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  nfs:
+    server: 192.168.1.162
+    path: /volume1/docker/arr-stack/downloads
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: arr-downloads-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 500Gi
+  volumeName: arr-downloads-pv
+  storageClassName: ""

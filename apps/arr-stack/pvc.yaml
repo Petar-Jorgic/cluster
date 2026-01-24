@@ -1,86 +1,41 @@
-# Config storage for all arr apps
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: arr-config-pv
-spec:
-  capacity:
-    storage: 20Gi
-  accessModes:
-    - ReadWriteMany
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: ""
-  nfs:
-    server: 192.168.1.162
-    path: /volume1/docker/arr/config
----
+# Config storage for all arr apps (local storage, fresh configs)
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: arr-config-pvc
 spec:
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   resources:
     requests:
-      storage: 20Gi
-  volumeName: arr-config-pv
-  storageClassName: ""
+      storage: 10Gi
+  storageClassName: local-path
 ---
-# Media storage (Plex library)
+# NAS storage (all media and downloads - full NAS access)
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: arr-media-pv
+  name: arr-nas-pv
 spec:
   capacity:
-    storage: 1Ti
+    storage: 32Ti
   accessModes:
     - ReadWriteMany
   persistentVolumeReclaimPolicy: Retain
-  storageClassName: ""
+  storageClassName: nfs-arr
   nfs:
     server: 192.168.1.162
-    path: /volume1/docker/arr
+    path: /volume1/docker
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: arr-media-pvc
+  name: arr-nas-pvc
 spec:
   accessModes:
     - ReadWriteMany
   resources:
     requests:
-      storage: 1Ti
-  volumeName: arr-media-pv
-  storageClassName: ""
----
-# Downloads storage
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: arr-downloads-pv
-spec:
-  capacity:
-    storage: 500Gi
-  accessModes:
-    - ReadWriteMany
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: ""
-  nfs:
-    server: 192.168.1.162
-    path: /volume1/docker/arr-stack/downloads
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: arr-downloads-pvc
-spec:
-  accessModes:
-    - ReadWriteMany
-  resources:
-    requests:
-      storage: 500Gi
-  volumeName: arr-downloads-pv
-  storageClassName: ""
+      storage: 32Ti
+  volumeName: arr-nas-pv
+  storageClassName: nfs-arr

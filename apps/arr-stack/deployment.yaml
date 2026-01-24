@@ -105,15 +105,15 @@ spec:
             - name: config
               mountPath: /config
               subPath: sabnzbd
-            - name: downloads
+            - name: nas
               mountPath: /downloads
-              subPath: usenet
-            - name: media
+              subPath: arr-stack/downloads/usenet
+            - name: nas
               mountPath: /movies
-              subPath: Plex/film
-            - name: media
+              subPath: arr/Plex/film
+            - name: nas
               mountPath: /tv
-              subPath: Plex/TV
+              subPath: arr/Plex/TV
           resources:
             requests:
               cpu: 100m
@@ -138,10 +138,10 @@ spec:
             - name: config
               mountPath: /config
               subPath: qbittorrent
-            - name: downloads
+            - name: nas
               mountPath: /downloads
-              subPath: torrents
-            - name: media
+              subPath: arr-stack/downloads/torrents
+            - name: nas
               mountPath: /mnt/media
           resources:
             requests:
@@ -165,15 +165,15 @@ spec:
             - name: config
               mountPath: /config
               subPath: sonarr
-            - name: media
+            - name: nas
               mountPath: /tv
-              subPath: Plex/TV
-            - name: media
+              subPath: arr/Plex/TV
+            - name: nas
               mountPath: /anime
-              subPath: Plex/Anime/Series
-            - name: downloads
+              subPath: arr/Plex/Anime/Series
+            - name: nas
               mountPath: /downloads
-              subPath: torrents
+              subPath: arr-stack/downloads/torrents
           resources:
             requests:
               cpu: 100m
@@ -196,12 +196,12 @@ spec:
             - name: config
               mountPath: /config
               subPath: radarr
-            - name: media
+            - name: nas
               mountPath: /movies
-              subPath: Plex/film
-            - name: downloads
+              subPath: arr/Plex/film
+            - name: nas
               mountPath: /downloads
-              subPath: torrents
+              subPath: arr-stack/downloads/torrents
           resources:
             requests:
               cpu: 100m
@@ -280,15 +280,15 @@ spec:
             - name: config
               mountPath: /config
               subPath: bazarr
-            - name: media
+            - name: nas
               mountPath: /movies
-              subPath: Plex/film
-            - name: media
+              subPath: arr/Plex/film
+            - name: nas
               mountPath: /tv
-              subPath: Plex/TV
-            - name: media
+              subPath: arr/Plex/TV
+            - name: nas
               mountPath: /anime
-              subPath: Plex/Anime/Series
+              subPath: arr/Plex/Anime/Series
           resources:
             requests:
               cpu: 50m
@@ -307,9 +307,6 @@ spec:
         - name: config
           persistentVolumeClaim:
             claimName: arr-config-pvc
-        - name: media
+        - name: nas
           persistentVolumeClaim:
-            claimName: arr-media-pvc
-        - name: downloads
-          persistentVolumeClaim:
-            claimName: arr-downloads-pvc
+            claimName: arr-nas-pvc

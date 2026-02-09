@@ -16,6 +16,7 @@ spec:
       labels:
         app.kubernetes.io/name: threadfin
     spec:
+      enableServiceLinks: false
       containers:
         - name: threadfin
           image: mgoerentz/threadfin:latest

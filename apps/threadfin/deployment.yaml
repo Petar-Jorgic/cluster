@@ -20,20 +20,16 @@ spec:
       initContainers:
         - name: fix-permissions
           image: busybox:latest
-          command: ["sh", "-c", "chown -R 1000:1000 /home/threadfin/conf"]
+          command: ["sh", "-c", "chown -R 31337:31337 /home/threadfin/conf"]
           volumeMounts:
             - name: config
               mountPath: /home/threadfin/conf
       containers:
         - name: threadfin
-          image: mgoerentz/threadfin:latest
+          image: fyb3roptik/threadfin:1.1.36
           env:
             - name: TZ
               value: "Europe/Vienna"
-            - name: PUID
-              value: "1000"
-            - name: PGID
-              value: "1000"
           ports:
             - name: http
               containerPort: 34400

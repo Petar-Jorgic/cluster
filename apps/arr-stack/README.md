@@ -6,8 +6,9 @@ Content automation suite running as a multi-container pod behind a VPN tunnel (G
 
 ```mermaid
 graph TB
-    subgraph "arr-stack Pod"
-        GLUE[Gluetun VPN] --> |all traffic| VPN[WireGuard Tunnel]
+    subgraph "arr-stack Pod (shared network via Gluetun)"
+        direction TB
+        GLUE[Gluetun VPN Gateway]
 
         QB[qBittorrent :8080]
         SON[Sonarr :8989]
@@ -18,15 +19,19 @@ graph TB
         FS[FlareSolverr :8191]
     end
 
+    GLUE ==>|"all outbound traffic<br/>via WireGuard tunnel"| VPN[VPN Provider]
+
     PRO -->|indexers| QB
     SON -->|downloads| QB
     RAD -->|downloads| QB
     BAZ -->|subtitles| SON & RAD
     JS -->|requests| SON & RAD
 
-    QB --> NAS[(NAS: Downloads + Media)]
+    QB -->|downloads via VPN| NAS[(NAS: Downloads + Media)]
     SON & RAD --> NAS
 ```
+
+> All containers share the same network namespace. Gluetun controls all outbound traffic through a WireGuard tunnel - including qBittorrent downloads.
 
 ## Components
 

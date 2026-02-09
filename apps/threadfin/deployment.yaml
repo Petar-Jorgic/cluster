@@ -18,12 +18,14 @@ spec:
     spec:
       containers:
         - name: threadfin
-          image: ghcr.io/threadfin/threadfin:latest
+          image: mgoerentz/threadfin:latest
           env:
             - name: TZ
               value: "Europe/Vienna"
-            - name: THREADFIN_PORT
-              value: "34400"
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
           ports:
             - name: http
               containerPort: 34400

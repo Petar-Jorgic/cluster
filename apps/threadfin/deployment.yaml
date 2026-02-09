@@ -17,6 +17,13 @@ spec:
         app.kubernetes.io/name: threadfin
     spec:
       enableServiceLinks: false
+      initContainers:
+        - name: fix-permissions
+          image: busybox:latest
+          command: ["sh", "-c", "chown -R 1000:1000 /home/threadfin/conf"]
+          volumeMounts:
+            - name: config
+              mountPath: /home/threadfin/conf
       containers:
         - name: threadfin
           image: mgoerentz/threadfin:latest

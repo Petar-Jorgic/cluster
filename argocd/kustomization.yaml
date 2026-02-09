@@ -12,3 +12,4 @@ resources:
   - jellyfin.yaml
   - it-tools.yaml
   - arr-stack.yaml
+  - threadfin.yaml

@@ -26,7 +26,7 @@ spec:
               mountPath: /home/threadfin/conf
       containers:
         - name: threadfin
-          image: fyb3roptik/threadfin:1.1.36
+          image: fyb3roptik/threadfin:latest
           env:
             - name: TZ
               value: "Europe/Vienna"

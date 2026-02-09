@@ -18,10 +18,12 @@ spec:
     spec:
       containers:
         - name: threadfin
-          image: fyb3roptik/threadfin:latest
+          image: ghcr.io/threadfin/threadfin:latest
           env:
             - name: TZ
               value: "Europe/Vienna"
+            - name: THREADFIN_PORT
+              value: "34400"
           ports:
             - name: http
               containerPort: 34400

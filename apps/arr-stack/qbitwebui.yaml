@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qbitwebui
+  labels:
+    app: qbitwebui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qbitwebui
+  template:
+    metadata:
+      labels:
+        app: qbitwebui
+    spec:
+      containers:
+        - name: qbitwebui
+          image: ghcr.io/maciejonos/qbitwebui:latest
+          ports:
+            - containerPort: 3000
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qbitwebui
+  labels:
+    app: qbitwebui
+spec:
+  selector:
+    app: qbitwebui
+  ports:
+    - port: 3000
+      targetPort: 3000
+      name: http

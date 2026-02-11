@@ -17,6 +17,9 @@ spec:
       containers:
         - name: qbitwebui
           image: ghcr.io/maciejonos/qbitwebui:latest
+          env:
+            - name: ENCRYPTION_KEY
+              value: "k3s-qbitwebui-enc-2026-pj-homelab"
           ports:
             - containerPort: 3000
           resources:

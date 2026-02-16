@@ -1,0 +1,11 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: n8n-websocket
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/part-of: n8n
+spec:
+  headers:
+    customRequestHeaders:
+      X-Forwarded-Proto: "https"

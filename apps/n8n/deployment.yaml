@@ -29,7 +29,7 @@ spec:
             - name: TZ
               value: "Europe/Berlin"
             - name: N8N_HOST
-              value: "n8n.pj-home-lab.com"
+              value: "n8n.local"
             - name: N8N_PORT
               value: "5678"
             - name: N8N_PROTOCOL

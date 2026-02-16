@@ -38,6 +38,12 @@ spec:
               value: "https://n8n.pj-home-lab.com/"
             - name: N8N_SECURE_COOKIE
               value: "false"
+            - name: N8N_PUSH_BACKEND
+              value: "sse"
+            - name: EXECUTIONS_MODE
+              value: "regular"
+            - name: N8N_RUNNERS_ENABLED
+              value: "false"
           enableServiceLinks: false
           ports:
             - name: http

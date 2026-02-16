@@ -30,12 +30,15 @@ spec:
               value: "Europe/Berlin"
             - name: N8N_HOST
               value: "n8n.pj-home-lab.com"
+            - name: N8N_PORT
+              value: "5678"
             - name: N8N_PROTOCOL
               value: "https"
             - name: WEBHOOK_URL
               value: "https://n8n.pj-home-lab.com/"
             - name: N8N_SECURE_COOKIE
               value: "false"
+          enableServiceLinks: false
           ports:
             - name: http
               containerPort: 5678

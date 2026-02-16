@@ -42,6 +42,8 @@ spec:
               value: "websocket"
             - name: N8N_EDITOR_BASE_URL
               value: "https://n8n.local"
+            - name: N8N_TRUST_PROXY
+              value: "true"
           enableServiceLinks: false
           ports:
             - name: http

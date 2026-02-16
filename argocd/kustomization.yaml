@@ -14,3 +14,4 @@ resources:
   - arr-stack.yaml
   - ollama.yaml
   - n8n.yaml
+  - whisper.yaml

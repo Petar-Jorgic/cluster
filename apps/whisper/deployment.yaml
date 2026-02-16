@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: whisper
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: whisper
+    app.kubernetes.io/part-of: whisper
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/managed-by: kustomize
+      app.kubernetes.io/name: whisper
+      app.kubernetes.io/part-of: whisper
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/managed-by: kustomize
+        app.kubernetes.io/name: whisper
+        app.kubernetes.io/part-of: whisper
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: pj
+      containers:
+        - name: whisper
+          image: ghcr.io/speaches-ai/speaches:latest-cpu
+          env:
+            - name: TZ
+              value: "Europe/Berlin"
+            - name: WHISPER__MODEL
+              value: "Systran/faster-whisper-base"
+            - name: WHISPER__COMPUTE_TYPE
+              value: "int8"
+          ports:
+            - name: http
+              containerPort: 8000
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: 14000m
+              memory: 3Gi
+          volumeMounts:
+            - name: data
+              mountPath: /root/.cache/huggingface
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: whisper-data

@@ -29,11 +29,11 @@ spec:
             - name: TZ
               value: "Europe/Berlin"
             - name: N8N_HOST
-              value: "0.0.0.0"
+              value: "n8n.pj-home-lab.com"
             - name: N8N_PORT
               value: "5678"
             - name: N8N_PROTOCOL
-              value: "http"
+              value: "https"
             - name: WEBHOOK_URL
               value: "https://n8n.pj-home-lab.com/"
             - name: N8N_SECURE_COOKIE
@@ -41,11 +41,7 @@ spec:
             - name: N8N_PUSH_BACKEND
               value: "websocket"
             - name: N8N_EDITOR_BASE_URL
-              value: "http://n8n.local"
-            - name: N8N_CORS_ENABLED
-              value: "true"
-            - name: N8N_CORS_ALLOW_ORIGIN
-              value: "*"
+              value: "https://n8n.pj-home-lab.com"
           enableServiceLinks: false
           ports:
             - name: http

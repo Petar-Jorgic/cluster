@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: ollama
+    app.kubernetes.io/part-of: ollama
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/managed-by: kustomize
+      app.kubernetes.io/name: ollama
+      app.kubernetes.io/part-of: ollama
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/managed-by: kustomize
+        app.kubernetes.io/name: ollama
+        app.kubernetes.io/part-of: ollama
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: pj
+      containers:
+        - name: ollama
+          image: ollama/ollama:latest
+          env:
+            - name: TZ
+              value: "Europe/Berlin"
+            - name: OLLAMA_HOST
+              value: "0.0.0.0"
+          ports:
+            - name: http
+              containerPort: 11434
+          resources:
+            requests:
+              cpu: 1000m
+              memory: 2Gi
+            limits:
+              cpu: 14000m
+              memory: 12Gi
+          volumeMounts:
+            - name: data
+              mountPath: /root/.ollama
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: ollama-data

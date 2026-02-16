@@ -12,3 +12,5 @@ resources:
   - jellyfin.yaml
   - it-tools.yaml
   - arr-stack.yaml
+  - ollama.yaml
+  - n8n.yaml

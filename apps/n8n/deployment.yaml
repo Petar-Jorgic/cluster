@@ -41,7 +41,7 @@ spec:
             - name: N8N_PUSH_BACKEND
               value: "websocket"
             - name: N8N_EDITOR_BASE_URL
-              value: "https://n8n.pj-home-lab.com"
+              value: "https://n8n.local"
           enableServiceLinks: false
           ports:
             - name: http

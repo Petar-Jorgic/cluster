@@ -7,9 +7,12 @@ metadata:
     app.kubernetes.io/part-of: n8n
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
-    traefik.ingress.kubernetes.io/custom-response-headers: "X-Accel-Buffering: no"
 spec:
   ingressClassName: traefik
+  tls:
+    - hosts:
+        - n8n.local
+      secretName: n8n-tls
   rules:
     - host: n8n.local
       http:

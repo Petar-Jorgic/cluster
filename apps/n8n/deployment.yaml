@@ -44,6 +44,8 @@ spec:
               value: "https://n8n.local"
             - name: N8N_TRUST_PROXY
               value: "true"
+            - name: N8N_PROXY_HOPS
+              value: "1"
           enableServiceLinks: false
           ports:
             - name: http

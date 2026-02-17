@@ -16,3 +16,4 @@ resources:
   - n8n.yaml
   - whisper.yaml
   - mealie.yaml
+  - flaresolverr.yaml

@@ -15,3 +15,4 @@ resources:
   - ollama.yaml
   - n8n.yaml
   - whisper.yaml
+  - mealie.yaml

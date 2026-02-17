@@ -25,6 +25,18 @@ spec:
       nodeSelector:
         kubernetes.io/hostname: pj
       containers:
+        - name: tor
+          image: dperson/torproxy:latest
+          ports:
+            - name: socks
+              containerPort: 9050
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
         - name: flaresolverr
           image: ghcr.io/flaresolverr/flaresolverr:latest
           ports:
@@ -35,6 +47,8 @@ spec:
               value: "Europe/Berlin"
             - name: LOG_LEVEL
               value: "info"
+            - name: PROXY_URL
+              value: "socks5://localhost:9050"
           resources:
             requests:
               cpu: 100m

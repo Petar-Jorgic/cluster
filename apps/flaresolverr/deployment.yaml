@@ -26,7 +26,7 @@ spec:
         kubernetes.io/hostname: pj
       containers:
         - name: tor
-          image: dperson/torproxy:latest
+          image: osminogin/tor-simple:latest
           ports:
             - name: socks
               containerPort: 9050

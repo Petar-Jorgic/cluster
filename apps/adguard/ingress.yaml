@@ -6,22 +6,11 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/part-of: adguard
   annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
-    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.entrypoints: web
 spec:
   ingressClassName: traefik
   rules:
     - host: adguard.local
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: adguard
-                port:
-                  number: 3000
-    - host: adguard.pj-home-lab.com
       http:
         paths:
           - path: /

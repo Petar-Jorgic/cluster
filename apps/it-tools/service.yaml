@@ -8,6 +8,7 @@ metadata:
     app.kubernetes.io/part-of: it-tools
 spec:
   type: ClusterIP
+  clusterIP: 10.43.189.210
   selector:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: it-tools

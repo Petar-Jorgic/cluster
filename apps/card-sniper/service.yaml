@@ -8,6 +8,7 @@ metadata:
     app.kubernetes.io/part-of: card-sniper
 spec:
   type: ClusterIP
+  clusterIP: 10.43.100.77
   ports:
     - name: http
       port: 8000

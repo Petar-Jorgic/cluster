@@ -22,6 +22,9 @@ immich:
 
 server:
   enabled: true
+  service:
+    main:
+      clusterIP: 10.43.54.197
   ingress:
     main:
       enabled: true

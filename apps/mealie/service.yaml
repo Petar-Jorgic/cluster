@@ -8,6 +8,7 @@ metadata:
     app.kubernetes.io/part-of: mealie
 spec:
   type: ClusterIP
+  clusterIP: 10.43.228.206
   selector:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: mealie

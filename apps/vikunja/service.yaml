@@ -8,6 +8,7 @@ metadata:
     app.kubernetes.io/part-of: vikunja
 spec:
   type: ClusterIP
+  clusterIP: 10.43.218.31
   selector:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: vikunja

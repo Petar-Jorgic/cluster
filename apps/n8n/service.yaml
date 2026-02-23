@@ -8,6 +8,7 @@ metadata:
     app.kubernetes.io/part-of: n8n
 spec:
   type: ClusterIP
+  clusterIP: 10.43.164.166
   selector:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: n8n

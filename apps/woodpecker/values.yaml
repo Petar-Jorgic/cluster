@@ -1,4 +1,6 @@
 server:
+  service:
+    clusterIP: 10.43.55.118
   env:
     WOODPECKER_GITHUB: "true"
     WOODPECKER_HOST: https://wood.pj-home-lab.com

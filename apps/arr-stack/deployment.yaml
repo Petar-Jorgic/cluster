@@ -76,7 +76,11 @@ spec:
             - name: BLOCK_MALICIOUS
               value: "off"
             - name: DOT
-              value: "off"
+              value: "on"
+            - name: DOT_PROVIDERS
+              value: "cloudflare,google"
+            - name: DNS_PLAINTEXT_ADDRESS
+              value: "8.8.8.8"
           volumeMounts:
             - name: gluetun-config
               mountPath: /gluetun

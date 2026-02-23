@@ -75,11 +75,11 @@ spec:
               value: "Europe/Berlin"
             - name: BLOCK_MALICIOUS
               value: "off"
-            - name: DOT
+            - name: DNS_SERVER_ENABLED
               value: "on"
-            - name: DOT_PROVIDERS
-              value: "quad9"
-            - name: DOT_IPV6
+            - name: DNS_UPSTREAM_RESOLVERS
+              value: "9.9.9.9"
+            - name: DNS_UPSTREAM_IPV6
               value: "off"
             - name: WIREGUARD_MTU
               value: "1280"

@@ -76,7 +76,7 @@ spec:
             - name: BLOCK_MALICIOUS
               value: "off"
             - name: DOT
-              value: "on"
+              value: "off"
             - name: DOT_PROVIDERS
               value: "quad9"
             - name: WIREGUARD_MTU

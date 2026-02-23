@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: adguard
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: adguard
+    app.kubernetes.io/part-of: adguard
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: adguard
+    app.kubernetes.io/part-of: adguard
+  ports:
+    - name: http-setup
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    - name: http
+      port: 80
+      targetPort: 80
+      protocol: TCP

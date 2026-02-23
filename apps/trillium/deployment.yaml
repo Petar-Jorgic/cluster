@@ -21,6 +21,8 @@ spec:
         app.kubernetes.io/name: trillium
         app.kubernetes.io/part-of: trillium
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: pj
       containers:
         - name: trillium
           image: triliumnext/notes:latest

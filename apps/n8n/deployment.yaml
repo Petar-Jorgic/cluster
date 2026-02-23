@@ -46,7 +46,6 @@ spec:
               value: "true"
             - name: N8N_PROXY_HOPS
               value: "1"
-          enableServiceLinks: false
           ports:
             - name: http
               containerPort: 5678

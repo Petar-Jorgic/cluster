@@ -78,7 +78,7 @@ spec:
             - name: DNS_SERVER_ENABLED
               value: "on"
             - name: DNS_UPSTREAM_RESOLVERS
-              value: "9.9.9.9"
+              value: "quad9"
             - name: DNS_UPSTREAM_IPV6
               value: "off"
             - name: WIREGUARD_MTU

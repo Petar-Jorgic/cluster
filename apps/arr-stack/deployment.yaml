@@ -76,7 +76,7 @@ spec:
             - name: BLOCK_MALICIOUS
               value: "off"
             - name: DOT
-              value: "off"
+              value: "on"
             - name: DOT_PROVIDERS
               value: "quad9"
             - name: DOT_IPV6

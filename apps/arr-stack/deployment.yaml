@@ -76,11 +76,13 @@ spec:
             - name: BLOCK_MALICIOUS
               value: "off"
             - name: DOT
-              value: "on"
-            - name: DOT_PROVIDERS
-              value: "cloudflare,google"
+              value: "off"
+            - name: DNS_ADDRESS
+              value: "8.8.8.8"
             - name: WIREGUARD_MTU
               value: "1280"
+            - name: WIREGUARD_PERSISTENT_KEEPALIVE_INTERVAL
+              value: "25"
           volumeMounts:
             - name: gluetun-config
               mountPath: /gluetun

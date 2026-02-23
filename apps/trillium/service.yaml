@@ -8,6 +8,7 @@ metadata:
     app.kubernetes.io/part-of: trillium
 spec:
   type: ClusterIP
+  clusterIP: 10.43.206.51
   selector:
     app.kubernetes.io/name: trillium
     app.kubernetes.io/part-of: trillium

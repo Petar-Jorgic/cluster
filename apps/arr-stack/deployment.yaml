@@ -79,6 +79,8 @@ spec:
               value: "off"
             - name: DOT_PROVIDERS
               value: "quad9"
+            - name: DOT_IPV6
+              value: "off"
             - name: WIREGUARD_MTU
               value: "1280"
             - name: WIREGUARD_PERSISTENT_KEEPALIVE_INTERVAL

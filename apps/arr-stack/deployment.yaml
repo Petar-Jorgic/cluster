@@ -80,7 +80,7 @@ spec:
             - name: HEALTH_VPN_DURATION_INITIAL
               value: "30s"
             - name: WIREGUARD_MTU
-              value: "1280"
+              value: "1420"
             - name: WIREGUARD_PERSISTENT_KEEPALIVE_INTERVAL
               value: "25s"
           lifecycle:

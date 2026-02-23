@@ -8,6 +8,7 @@ metadata:
     app.kubernetes.io/part-of: adguard
 spec:
   type: LoadBalancer
+  clusterIP: 10.43.15.186
   selector:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: adguard

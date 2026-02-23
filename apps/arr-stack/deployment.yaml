@@ -79,6 +79,10 @@ spec:
               value: "off"
             - name: DNS_ADDRESS
               value: "10.43.15.186"
+            - name: HEALTH_ICMP_TARGET_IPS
+              value: "9.9.9.9"
+            - name: HEALTH_VPN_DURATION_INITIAL
+              value: "30s"
             - name: WIREGUARD_MTU
               value: "1280"
             - name: WIREGUARD_PERSISTENT_KEEPALIVE_INTERVAL

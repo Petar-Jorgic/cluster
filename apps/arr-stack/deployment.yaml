@@ -75,7 +75,7 @@ spec:
               value: "Europe/Berlin"
             - name: BLOCK_MALICIOUS
               value: "off"
-            - name: DNS_SERVER
+            - name: DOT
               value: "off"
             - name: DNS_ADDRESS
               value: "10.43.15.186"

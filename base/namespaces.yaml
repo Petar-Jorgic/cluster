@@ -16,11 +16,6 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: cloudflare
----
-apiVersion: v1
-kind: Namespace
-metadata:
   name: woodpecker
 ---
 apiVersion: v1

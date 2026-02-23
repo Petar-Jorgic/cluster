@@ -79,8 +79,8 @@ spec:
               value: "on"
             - name: DOT_PROVIDERS
               value: "cloudflare,google"
-            - name: DNS_PLAINTEXT_ADDRESS
-              value: "8.8.8.8"
+            - name: WIREGUARD_MTU
+              value: "1280"
           volumeMounts:
             - name: gluetun-config
               mountPath: /gluetun

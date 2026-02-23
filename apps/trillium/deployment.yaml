@@ -23,9 +23,13 @@ spec:
     spec:
       nodeSelector:
         kubernetes.io/hostname: pj
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
       containers:
         - name: trillium
-          image: triliumnext/notes:latest
+          image: triliumnext/notes:develop
           env:
             - name: TZ
               value: "Europe/Berlin"

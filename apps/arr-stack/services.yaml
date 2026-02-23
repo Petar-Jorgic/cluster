@@ -18,11 +18,11 @@ kind: Service
 metadata:
   name: sonarr
   labels:
-    app: arr-stack
+    app: sonarr
 spec:
   clusterIP: 10.43.249.25
   selector:
-    app: arr-stack
+    app: sonarr
   ports:
     - port: 8989
       targetPort: 8989
@@ -33,11 +33,11 @@ kind: Service
 metadata:
   name: radarr
   labels:
-    app: arr-stack
+    app: radarr
 spec:
   clusterIP: 10.43.196.90
   selector:
-    app: arr-stack
+    app: radarr
   ports:
     - port: 7878
       targetPort: 7878
@@ -93,11 +93,11 @@ kind: Service
 metadata:
   name: bazarr
   labels:
-    app: arr-stack
+    app: bazarr
 spec:
   clusterIP: 10.43.139.57
   selector:
-    app: arr-stack
+    app: bazarr
   ports:
     - port: 6767
       targetPort: 6767

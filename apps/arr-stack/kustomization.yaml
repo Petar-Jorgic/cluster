@@ -5,6 +5,9 @@ namespace: arr-stack
 
 resources:
   - deployment.yaml
+  - sonarr.yaml
+  - radarr.yaml
+  - bazarr.yaml
   - jellyseerr.yaml
   - services.yaml
   - ingress.yaml

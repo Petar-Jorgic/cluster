@@ -27,11 +27,7 @@ spec:
           ports:
             - containerPort: 8080  # qbittorrent
             - containerPort: 9696  # prowlarr
-            - containerPort: 7878  # radarr
-            - containerPort: 8989  # sonarr
-
             - containerPort: 8191  # flaresolverr
-            - containerPort: 6767  # bazarr
           env:
             - name: VPN_SERVICE_PROVIDER
               value: "custom"
@@ -107,7 +103,7 @@ spec:
               cpu: 500m
               memory: 256Mi
 
-        # qBittorrent - Torrent client
+        # qBittorrent - Torrent client (needs VPN)
         - name: qbittorrent
           image: linuxserver/qbittorrent:latest
           env:
@@ -136,66 +132,7 @@ spec:
               cpu: 2000m
               memory: 2Gi
 
-        # Sonarr - TV show management
-        - name: sonarr
-          image: linuxserver/sonarr:latest
-          env:
-            - name: PUID
-              value: "0"
-            - name: PGID
-              value: "0"
-            - name: TZ
-              value: "Europe/Berlin"
-          volumeMounts:
-            - name: config
-              mountPath: /config
-              subPath: sonarr
-            - name: nas
-              mountPath: /tv
-              subPath: arr/Plex/TV
-            - name: nas
-              mountPath: /anime
-              subPath: arr/Plex/Anime/Series
-            - name: nas
-              mountPath: /downloads
-              subPath: arr-stack/downloads/torrents
-          resources:
-            requests:
-              cpu: 100m
-              memory: 256Mi
-            limits:
-              cpu: 1000m
-              memory: 1Gi
-
-        # Radarr - Movie management
-        - name: radarr
-          image: linuxserver/radarr:latest
-          env:
-            - name: PUID
-              value: "0"
-            - name: PGID
-              value: "0"
-            - name: TZ
-              value: "Europe/Berlin"
-          volumeMounts:
-            - name: config
-              mountPath: /config
-              subPath: radarr
-            - name: nas
-              mountPath: /movies
-              subPath: arr/Plex/film
-            - name: nas
-              mountPath: /downloads
-              subPath: arr-stack/downloads/torrents
-          resources:
-            requests:
-              cpu: 100m
-              memory: 256Mi
-            limits:
-              cpu: 1000m
-              memory: 1Gi
-
-        # Prowlarr - Indexer manager
+        # Prowlarr - Indexer manager (needs VPN for torrent indexers)
         - name: prowlarr
           image: linuxserver/prowlarr:latest
           env:
@@ -217,8 +154,7 @@ spec:
               cpu: 500m
               memory: 512Mi
 
-
-        # FlareSolverr - Cloudflare bypass
+        # FlareSolverr - Cloudflare bypass (needs VPN)
         - name: flaresolverr
           image: ghcr.io/flaresolverr/flaresolverr:latest
           env:
@@ -233,37 +169,6 @@ spec:
             limits:
               cpu: 1000m
               memory: 2Gi
-
-        # Bazarr - Subtitle management
-        - name: bazarr
-          image: linuxserver/bazarr:latest
-          env:
-            - name: PUID
-              value: "0"
-            - name: PGID
-              value: "0"
-            - name: TZ
-              value: "Europe/Berlin"
-          volumeMounts:
-            - name: config
-              mountPath: /config
-              subPath: bazarr
-            - name: nas
-              mountPath: /movies
-              subPath: arr/Plex/film
-            - name: nas
-              mountPath: /tv
-              subPath: arr/Plex/TV
-            - name: nas
-              mountPath: /anime
-              subPath: arr/Plex/Anime/Series
-          resources:
-            requests:
-              cpu: 50m
-              memory: 128Mi
-            limits:
-              cpu: 500m
-              memory: 512Mi
 
       volumes:
         - name: dev-net-tun

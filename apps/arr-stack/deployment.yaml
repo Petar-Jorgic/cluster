@@ -76,9 +76,9 @@ spec:
             - name: BLOCK_MALICIOUS
               value: "off"
             - name: DOT
-              value: "off"
-            - name: DNS_ADDRESS
-              value: "10.43.15.186"
+              value: "on"
+            - name: DOT_PROVIDERS
+              value: "cloudflare,google"
             - name: WIREGUARD_MTU
               value: "1280"
             - name: WIREGUARD_PERSISTENT_KEEPALIVE_INTERVAL

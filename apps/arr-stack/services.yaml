@@ -5,6 +5,7 @@ metadata:
   labels:
     app: arr-stack
 spec:
+  clusterIP: 10.43.176.86
   selector:
     app: arr-stack
   ports:
@@ -19,6 +20,7 @@ metadata:
   labels:
     app: arr-stack
 spec:
+  clusterIP: 10.43.249.25
   selector:
     app: arr-stack
   ports:
@@ -33,6 +35,7 @@ metadata:
   labels:
     app: arr-stack
 spec:
+  clusterIP: 10.43.196.90
   selector:
     app: arr-stack
   ports:
@@ -47,6 +50,7 @@ metadata:
   labels:
     app: arr-stack
 spec:
+  clusterIP: 10.43.18.74
   selector:
     app: arr-stack
   ports:
@@ -61,6 +65,7 @@ metadata:
   labels:
     app: arr-stack
 spec:
+  clusterIP: 10.43.54.5
   selector:
     app: arr-stack
   ports:
@@ -75,6 +80,7 @@ metadata:
   labels:
     app: arr-stack
 spec:
+  clusterIP: 10.43.129.135
   selector:
     app: arr-stack
   ports:
@@ -89,6 +95,7 @@ metadata:
   labels:
     app: arr-stack
 spec:
+  clusterIP: 10.43.139.57
   selector:
     app: arr-stack
   ports:

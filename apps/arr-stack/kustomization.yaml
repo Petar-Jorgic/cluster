@@ -5,6 +5,7 @@ namespace: arr-stack
 
 resources:
   - deployment.yaml
+  - jellyseerr.yaml
   - services.yaml
   - ingress.yaml
   - pvc.yaml

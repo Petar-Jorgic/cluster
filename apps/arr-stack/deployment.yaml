@@ -29,7 +29,7 @@ spec:
             - containerPort: 9696  # prowlarr
             - containerPort: 7878  # radarr
             - containerPort: 8989  # sonarr
-            - containerPort: 5055  # jellyseerr
+
             - containerPort: 8191  # flaresolverr
             - containerPort: 6767  # bazarr
           env:
@@ -217,23 +217,6 @@ spec:
               cpu: 500m
               memory: 512Mi
 
-        # Jellyseerr - Request management
-        - name: jellyseerr
-          image: fallenbagel/jellyseerr:latest
-          env:
-            - name: TZ
-              value: "Europe/Berlin"
-          volumeMounts:
-            - name: config
-              mountPath: /app/config
-              subPath: jellyseerr
-          resources:
-            requests:
-              cpu: 50m
-              memory: 256Mi
-            limits:
-              cpu: 500m
-              memory: 512Mi
 
         # FlareSolverr - Cloudflare bypass
         - name: flaresolverr

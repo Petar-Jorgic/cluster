@@ -63,11 +63,11 @@ kind: Service
 metadata:
   name: jellyseerr
   labels:
-    app: arr-stack
+    app: jellyseerr
 spec:
   clusterIP: 10.43.54.5
   selector:
-    app: arr-stack
+    app: jellyseerr
   ports:
     - port: 5055
       targetPort: 5055

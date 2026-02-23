@@ -20,3 +20,4 @@ resources:
   - card-sniper.yaml
   - adguard.yaml
   - trillium.yaml
+  - gotify.yaml

@@ -57,3 +57,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: trillium
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gotify

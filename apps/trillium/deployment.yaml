@@ -25,7 +25,7 @@ spec:
         kubernetes.io/hostname: pj
       containers:
         - name: trillium
-          image: triliumnext/notes:develop
+          image: triliumnext/trilium:latest
           env:
             - name: TZ
               value: "Europe/Berlin"

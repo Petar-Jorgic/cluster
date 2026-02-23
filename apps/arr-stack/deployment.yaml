@@ -85,6 +85,13 @@ spec:
               value: "1280"
             - name: WIREGUARD_PERSISTENT_KEEPALIVE_INTERVAL
               value: "25s"
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - "ip6tables -F OUTPUT; ip6tables -A OUTPUT -o lo -j ACCEPT; ip6tables -A OUTPUT -j REJECT"
           volumeMounts:
             - name: gluetun-config
               mountPath: /gluetun

@@ -1,0 +1,199 @@
+n8n WORKFLOW VISUAL DIAGRAMS
+=============================
+
+WORKFLOW 1: Chat → AI → Vikunja Task Creator
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Main Flow (horizontal):
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│  Chat Trigger   │────▶│    AI Agent     │────▶│ Create Vikunja  │────▶│  Respond to     │
+│                 │     │                 │     │     Task        │     │     Chat        │
+│  Type: trigger  │     │  Type: agent    │     │  Type: HTTP     │     │  Type: respond  │
+│  Webhook ID     │     │  v1.7           │     │  POST /tasks    │     │  Confirmation   │
+└─────────────────┘     └─────────────────┘     └─────────────────┘     └─────────────────┘
+                                 ▲
+                                 │
+                     ai_languageModel connection
+                                 │
+                        ┌────────┴────────┐
+                        │                 │
+              ┌─────────────────┐   ┌─────────────────┐
+              │ Ollama Chat     │   │  Structured     │
+              │     Model       │   │ Output Parser   │
+              │                 │   │                 │
+              │ llama3.1:8b-    │   │  JSON Schema    │
+              │ instruct-q4_0   │   │  Enforcer       │
+              └─────────────────┘   └─────────────────┘
+                                          │
+                                ai_outputParser connection
+
+Data Flow Example:
+══════════════════
+Input (chatInput):
+  "Erinnere mich morgen an Einkaufen"
+
+AI Agent Processing:
+  System Prompt: Extract task details, convert dates, output JSON
+  LLM: llama3.1:8b-instruct-q4_0
+  Output Parser: Enforce JSON schema
+
+Structured Output:
+  {
+    "task_title": "Einkaufen",
+    "due_date": "2026-02-17T12:00:00Z",
+    "project_id": 1,
+    "priority": 3
+  }
+
+HTTP Request:
+  POST http://vikunja.vikunja.svc.cluster.local:3456/api/v1/projects/1/tasks
+  Headers: Authorization: Bearer tk_ba2a509cbe18e5368df76e9de325f55e12506358
+  Body: { title, due_date, priority }
+
+Response:
+  "Aufgabe erstellt: Einkaufen (Fällig: 2026-02-17T12:00:00Z)"
+
+
+WORKFLOW 2: Daily Task Summary
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Main Flow (horizontal):
+┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐
+│  Schedule   │─▶│   Get Open  │─▶│   Prepare   │─▶│   Basic     │─▶│   Format    │─▶│    Send     │
+│  Trigger    │  │    Tasks    │  │  Task Data  │  │ LLM Chain   │  │   Summary   │  │   Summary   │
+│             │  │             │  │             │  │             │  │   Output    │  │  (Optional) │
+│ Cron: 0 8   │  │ GET Vikunja │  │  Set node   │  │  v1.7       │  │  Set node   │  │  Disabled   │
+│   * * *     │  │   API       │  │  Count &    │  │  AI to      │  │  Add meta   │  │  Webhook    │
+│ (8:00 AM)   │  │  Filter:    │  │  Format     │  │  Summarize  │  │  data       │  │  endpoint   │
+└─────────────┘  │  done=false │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘
+                 └─────────────┘                           ▲
+                                                           │
+                                               ai_languageModel
+                                                           │
+                                                  ┌────────┴────────┐
+                                                  │                 │
+                                            ┌─────────────────┐     │
+                                            │ Ollama Chat     │     │
+                                            │     Model       │     │
+                                            │                 │     │
+                                            │ llama3.1:8b-    │     │
+                                            │ instruct-q4_0   │     │
+                                            └─────────────────┘     │
+
+Data Flow Example:
+══════════════════
+Trigger:
+  Every day at 8:00 AM (Cron: 0 8 * * *)
+
+Get Open Tasks (HTTP GET):
+  URL: http://vikunja.vikunja.svc.cluster.local:3456/api/v1/tasks/all?filter=done=false
+  Returns: Array of task objects
+
+Prepare Task Data:
+  taskList: {{ $json }}
+  taskCount: {{ $json.length }}
+
+Basic LLM Chain Input:
+  "Hier ist die Liste aller offenen Aufgaben:
+  
+  [JSON array of tasks]
+  
+  Bitte erstelle eine Zusammenfassung in Deutsch mit:
+  1. Gesamtanzahl der offenen Aufgaben
+  2. Aufgaben nach Priorität gruppiert
+  3. Heute fällige Aufgaben (2026-02-16)
+  4. In den nächsten 3 Tagen fällige Aufgaben
+  5. Überfällige Aufgaben"
+
+AI Summary Output (example):
+  ## Aufgabenzusammenfassung - 2026-02-16
+  
+  **Gesamtanzahl:** 15 offene Aufgaben
+  
+  ### Nach Priorität:
+  - Sehr hoch (5): 2 Aufgaben
+  - Hoch (4): 5 Aufgaben
+  - Mittel (3): 6 Aufgaben
+  - Niedrig (2): 2 Aufgaben
+  
+  ### Heute fällig:
+  - Projekt-Präsentation vorbereiten
+  - Team-Meeting
+  
+  ### Nächste 3 Tage:
+  - Kundenmeeting vorbereiten (morgen)
+  - Dokumentation aktualisieren (18.02)
+  
+  ### Überfällig:
+  - Budget-Review (seit 2 Tagen)
+
+Format Summary Output:
+  {
+    "summary": "[AI-generated markdown summary]",
+    "timestamp": "2026-02-16T08:00:00.000Z",
+    "total_tasks": 15
+  }
+
+
+NODE POSITIONING ON CANVAS
+═══════════════════════════
+
+Workflow 1 Layout:
+                 
+  (240, 300)      (460, 300)      (680, 300)      (900, 300)
+  Chat ────────▶ AI Agent ──────▶ Create Task ──▶ Respond
+  Trigger                             (HTTP)        to Chat
+                    │
+                    ├─────────────────────────┐
+                    │                         │
+          (480, 520)                   (480, 100)
+          Ollama                       Structured
+          Chat Model                   Output Parser
+
+Workflow 2 Layout:
+
+  (240, 300)   (460, 300)   (680, 300)   (900, 300)   (1120, 300)  (1340, 300)
+  Schedule ──▶ Get Open ──▶ Prepare ───▶ Basic ─────▶ Format ────▶ Send
+  Trigger      Tasks        Task Data    LLM Chain    Summary      Summary
+                                            │                       (disabled)
+                                            │
+                                     (920, 520)
+                                     Ollama
+                                     Chat Model
+
+
+CONNECTION TYPES EXPLAINED
+═══════════════════════════
+
+main:
+  Standard data flow between nodes
+  Carries JSON data from output to input
+  Example: Chat Trigger → AI Agent
+
+ai_languageModel:
+  Connects LLM to agent or chain
+  Provides language model capability
+  Example: Ollama Chat Model → AI Agent
+
+ai_outputParser:
+  Connects output parser to agent
+  Enforces output structure (JSON schema)
+  Example: Structured Output Parser → AI Agent
+
+
+CREDENTIAL REFERENCES
+══════════════════════
+
+Both workflows reference:
+  {
+    "ollamaApi": {
+      "id": "ollama-credentials",
+      "name": "Ollama API"
+    }
+  }
+
+Note: Credentials are stored separately in n8n.
+      You must create this credential after import.
+      
+Vikunja API uses hardcoded headers (should be replaced):
+  Authorization: Bearer tk_ba2a509cbe18e5368df76e9de325f55e12506358

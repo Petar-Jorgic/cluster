@@ -1,0 +1,126 @@
+n8n VIKUNJA WORKFLOWS - QUICK REFERENCE
+========================================
+
+FILE LOCATIONS:
+--------------
+• /home/pj/cluster/workflow-1-chat-ai-vikunja.json (5.5K)
+• /home/pj/cluster/workflow-2-daily-task-summary.json (6.7K)
+• /home/pj/cluster/n8n-vikunja-workflows-README.md (12K)
+
+WORKFLOW 1: Chat → AI → Vikunja Task Creator
+---------------------------------------------
+Purpose: Natural language task creation in German
+Trigger: Chat interface (webhook)
+Model: llama3.1:8b-instruct-q4_0 @ http://ollama.ollama.svc.cluster.local:11434
+
+Node Flow:
+  Chat Trigger 
+    → AI Agent (with Ollama Chat Model + Structured Output Parser)
+    → HTTP Request (POST to Vikunja API)
+    → Respond to Chat
+
+Input Example:
+  "Erinnere mich morgen an Einkaufen"
+
+Output:
+  {
+    "task_title": "Einkaufen",
+    "due_date": "2026-02-17T12:00:00Z",
+    "project_id": 1,
+    "priority": 3
+  }
+
+Vikunja API:
+  POST http://vikunja.vikunja.svc.cluster.local:3456/api/v1/projects/{project_id}/tasks
+  Auth: Bearer tk_ba2a509cbe18e5368df76e9de325f55e12506358
+
+
+WORKFLOW 2: Daily Task Summary
+-------------------------------
+Purpose: AI-generated summary of all open tasks in German
+Trigger: Schedule (Cron: 0 8 * * * - Daily at 8:00 AM)
+Model: llama3.1:8b-instruct-q4_0 @ http://ollama.ollama.svc.cluster.local:11434
+
+Node Flow:
+  Schedule Trigger (8 AM daily)
+    → Get Open Tasks (HTTP GET from Vikunja)
+    → Prepare Task Data
+    → Basic LLM Chain (with Ollama Chat Model)
+    → Format Summary Output
+    → [Optional] Send Summary (webhook - disabled by default)
+
+Summary Includes:
+  • Total open tasks
+  • Tasks grouped by priority (1-5)
+  • Tasks due today
+  • Tasks due in next 3 days
+  • Overdue tasks
+
+Vikunja API:
+  GET http://vikunja.vikunja.svc.cluster.local:3456/api/v1/tasks/all?filter=done=false
+  Auth: Bearer tk_ba2a509cbe18e5368df76e9de325f55e12506358
+
+
+CONFIGURATION CHECKLIST:
+------------------------
+Before Import:
+  ☐ n8n v2.7.5+ installed
+  ☐ Ollama running with llama3.1:8b-instruct-q4_0 model
+  ☐ Vikunja API accessible
+
+After Import:
+  ☐ Create "Ollama API" credential in n8n
+      Base URL: http://ollama.ollama.svc.cluster.local:11434
+  ☐ Replace Vikunja API token in both workflows
+      Current: tk_ba2a509cbe18e5368df76e9de325f55e12506358
+  ☐ Test Workflow 1 with chat interface
+  ☐ Manually execute Workflow 2 to test
+  ☐ Activate both workflows
+
+
+KEY TECHNICAL DETAILS:
+---------------------
+n8n Version: 2.7.5+
+JSON Format: Standard n8n workflow export format
+
+Node Types:
+  • @n8n/n8n-nodes-langchain.chatTrigger (v1)
+  • @n8n/n8n-nodes-langchain.agent (v1.7)
+  • @n8n/n8n-nodes-langchain.lmChatOllama (v1)
+  • @n8n/n8n-nodes-langchain.outputParserStructured (v1)
+  • @n8n/n8n-nodes-langchain.chainLlm (v1.7)
+  • @n8n/n8n-nodes-langchain.respondToChat (v1)
+  • n8n-nodes-base.httpRequest (v4.2)
+  • n8n-nodes-base.scheduleTrigger (v1.2)
+  • n8n-nodes-base.set (v3.4)
+
+Connection Types:
+  • main - Standard data flow
+  • ai_languageModel - LLM to agent/chain
+  • ai_outputParser - Parser to agent
+
+
+IMPORT METHODS:
+--------------
+Method 1: n8n UI
+  Workflows → Import from File → Select JSON file
+
+Method 2: n8n UI (URL)
+  Workflows → Import from URL → Paste GitHub/file URL
+
+Method 3: Copy-Paste
+  Open JSON file → Copy all → n8n canvas → Ctrl+V
+
+
+TROUBLESHOOTING:
+---------------
+Ollama Connection:
+  kubectl exec -n ollama deployment/ollama -- ollama list
+  kubectl exec -n n8n deployment/n8n -- curl http://ollama.ollama.svc.cluster.local:11434
+
+Vikunja Connection:
+  curl -H "Authorization: Bearer YOUR_TOKEN" \
+    http://vikunja.vikunja.svc.cluster.local:3456/api/v1/tasks/all
+
+Model Issues:
+  kubectl exec -n ollama deployment/ollama -- ollama pull llama3.1:8b-instruct-q4_0

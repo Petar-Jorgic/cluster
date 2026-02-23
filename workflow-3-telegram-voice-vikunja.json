@@ -1,0 +1,523 @@
+{
+  "name": "Telegram Voice → Vikunja Task",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "telegram-voice",
+        "httpMethod": "POST",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "f1a2b3c4-1001-4a01-b001-000000000001",
+      "name": "Telegram Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "telegram-voice-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $json.body;\nconst message = body.message;\nconst chat_id = message.chat.id;\n\nif (message.voice) {\n  return [{ json: { type: 'voice', file_id: message.voice.file_id, chat_id } }];\n} else if (message.text) {\n  return [{ json: { type: 'text', chatInput: message.text, chat_id } }];\n} else {\n  return [{ json: { type: 'unknown', chat_id } }];\n}"
+      },
+      "id": "f1a2b3c4-1001-4a01-b001-000000000030",
+      "name": "Parse Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-is-voice",
+              "leftValue": "={{ $json.type }}",
+              "rightValue": "voice",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "f1a2b3c4-1001-4a01-b001-000000000031",
+      "name": "Is Voice",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.telegram.org/bot8518425010:AAEKw_yU8Y_LK9KzbUcfWkxGsZ4WiRxYN5Q/getFile?file_id={{ $json.file_id }}",
+        "options": {}
+      },
+      "id": "f1a2b3c4-1001-4a01-b001-000000000003",
+      "name": "Get File Info",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [920, 200]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.telegram.org/file/bot8518425010:AAEKw_yU8Y_LK9KzbUcfWkxGsZ4WiRxYN5Q/{{ $json.result.file_path }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "f1a2b3c4-1001-4a01-b001-000000000004",
+      "name": "Download Audio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1140, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://whisper.whisper.svc.cluster.local:8000/v1/audio/transcriptions",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            },
+            {
+              "parameterType": "formData",
+              "name": "model",
+              "value": "Systran/faster-whisper-base"
+            },
+            {
+              "parameterType": "formData",
+              "name": "language",
+              "value": "de"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f1a2b3c4-1001-4a01-b001-000000000005",
+      "name": "Whisper Transcription",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1360, 200]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "assign-input-v",
+              "name": "chatInput",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-chat-v",
+              "name": "chat_id",
+              "value": "={{ $('Parse Message').item.json.chat_id }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f1a2b3c4-1001-4a01-b001-000000000032",
+      "name": "Prepare Voice Text",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1580, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://ollama.ollama.svc.cluster.local:11434/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"model\":\"llama3.1:8b-instruct-q4_0\",\"messages\":[{\"role\":\"system\",\"content\":\"Du bist ein Assistent der Spracheingaben in Aufgaben-Befehle umwandelt. Heute: {{ $now.toISODate() }}. Bestimme die Aktion: create (neue Aufgabe erstellen), done (Aufgabe als erledigt markieren), move (Aufgabe in anderes Projekt verschieben), edit (bestehende Aufgabe bearbeiten z.B. Beschreibung Prioritaet oder Datum aendern). Gib NUR ein JSON-Objekt zurueck mit: action (create done move oder edit), task_title (Titel der Aufgabe). Zusaetzliche Felder je nach Aktion: Bei create: description (1-2 Saetze), due_date (ISO 8601 oder null), project_id (Standard 6), priority (0-5 und 0 wenn nicht genannt). Bei move: target_project_id (Ziel-Projekt-ID). Bei edit: nur die Felder die geaendert werden sollen aus description due_date priority (ISO 8601 fuer Datum). Projekte: 6=Inbox 7=OeIF 8=HomeLab 9=IBM 10=Cardomat. WICHTIG: priority ist 0 wenn nicht genannt. due_date ist null wenn nicht genannt.\"},{\"role\":\"user\",\"content\":{{ JSON.stringify($json.chatInput) }}}],\"format\":\"json\",\"stream\":false}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "f1a2b3c4-1001-4a01-b001-000000000040",
+      "name": "Call Ollama",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1800, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const messageContent = $json.message.content;\nconst content = typeof messageContent === 'string' ? JSON.parse(messageContent) : messageContent;\n\nconst result = {\n  action: content.action || 'create',\n  task_title: content.task_title || 'Unbenannte Aufgabe'\n};\n\nif (result.action === 'create') {\n  result.description = content.description || '';\n  result.project_id = content.project_id || 6;\n  if (content.due_date && content.due_date !== 'null' && content.due_date !== null) {\n    result.due_date = content.due_date;\n  }\n  if (content.priority && content.priority > 0) {\n    result.priority = content.priority;\n  }\n} else if (result.action === 'move') {\n  result.target_project_id = content.target_project_id || content.project_id || 6;\n} else if (result.action === 'edit') {\n  result.edit_fields = {};\n  if (content.description) result.edit_fields.description = content.description;\n  if (content.due_date && content.due_date !== 'null' && content.due_date !== null) result.edit_fields.due_date = content.due_date;\n  if (content.priority && content.priority > 0) result.edit_fields.priority = content.priority;\n}\n\nreturn [{ json: result }];"
+      },
+      "id": "f1a2b3c4-1001-4a01-b001-000000000041",
+      "name": "Extract Task Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2020, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "is-create",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "create",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "f1a2b3c4-1001-4a01-b001-000000000050",
+      "name": "Is Create",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2240, 300]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=http://vikunja.vikunja.svc.cluster.local:3456/api/v1/projects/{{ $json.project_id }}/tasks",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer tk_ba2a509cbe18e5368df76e9de325f55e12506358"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify(Object.assign({title: $json.task_title, description: $json.description || ''}, $json.due_date ? {due_date: $json.due_date} : {}, $json.priority ? {priority: $json.priority} : {})) }}",
+        "options": {}
+      },
+      "id": "f1a2b3c4-1001-4a01-b001-000000000009",
+      "name": "Create Vikunja Task",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2500, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot8518425010:AAEKw_yU8Y_LK9KzbUcfWkxGsZ4WiRxYN5Q/sendMessage",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "={{ $('Parse Message').item.json.chat_id }}"
+            },
+            {
+              "name": "text",
+              "value": "=Aufgabe erstellt: {{ $json.title }}{{ $json.description ? '\\nBeschreibung: ' + $json.description : '' }}\\nProjekt: {{ {6:'Inbox',7:'OeIF',8:'Home Lab',9:'IBM',10:'Cardomat'}[$json.project_id] || 'Inbox' }}{{ $json.due_date && !$json.due_date.startsWith('0001') ? '\\nFaellig: ' + $json.due_date.substring(0,10) : '' }}{{ $json.priority ? '\\nPrioritaet: ' + $json.priority + '/5' : '' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f1a2b3c4-1001-4a01-b001-000000000010",
+      "name": "Send Create Confirm",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2740, 200]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://vikunja.vikunja.svc.cluster.local:3456/api/v1/tasks",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer tk_ba2a509cbe18e5368df76e9de325f55e12506358"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f1a2b3c4-1001-4a01-b001-000000000060",
+      "name": "Search Tasks",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2500, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "const tasks = $input.all();\nconst extractData = $('Extract Task Data').item.json;\nconst action = extractData.action;\nconst searchTitle = extractData.task_title.toLowerCase();\nconst projectNames = {6:'Inbox', 7:'OeIF', 8:'Home Lab', 9:'IBM', 10:'Cardomat'};\nconst prioNames = {1:'Sehr niedrig', 2:'Niedrig', 3:'Mittel', 4:'Hoch', 5:'Dringend'};\n\nlet match = null;\nfor (const item of tasks) {\n  if (item.json.title && item.json.title.toLowerCase().includes(searchTitle)) {\n    match = item.json;\n    break;\n  }\n}\n\nif (!match) {\n  return [{ json: { confirmation_text: 'Task nicht gefunden: ' + extractData.task_title } }];\n}\n\nconst result = { task_id: match.id, title: match.title, action };\n\nif (action === 'done') {\n  result.update_body = JSON.stringify({ done: true });\n  result.confirmation_text = 'Aufgabe erledigt: ' + match.title + '\\nProjekt: ' + (projectNames[match.project_id] || 'Unbekannt');\n} else if (action === 'move') {\n  const targetId = extractData.target_project_id || 6;\n  result.update_body = JSON.stringify({ project_id: targetId });\n  result.confirmation_text = 'Aufgabe verschoben: ' + match.title + '\\nVon: ' + (projectNames[match.project_id] || 'Unbekannt') + '\\nNach: ' + (projectNames[targetId] || 'Unbekannt');\n} else if (action === 'edit') {\n  const fields = extractData.edit_fields || {};\n  result.update_body = JSON.stringify(fields);\n  let details = [];\n  if (fields.description) details.push('Beschreibung: ' + fields.description);\n  if (fields.due_date) details.push('Faellig: ' + fields.due_date.substring(0, 10));\n  if (fields.priority) details.push('Prioritaet: ' + (prioNames[fields.priority] || fields.priority));\n  result.confirmation_text = 'Aufgabe bearbeitet: ' + match.title + '\\n' + details.join('\\n');\n}\n\nreturn [{ json: result }];"
+      },
+      "id": "f1a2b3c4-1001-4a01-b001-000000000061",
+      "name": "Find and Prepare",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2740, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://vikunja.vikunja.svc.cluster.local:3456/api/v1/tasks/{{ $json.task_id }}",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer tk_ba2a509cbe18e5368df76e9de325f55e12506358"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.update_body }}",
+        "options": {}
+      },
+      "id": "f1a2b3c4-1001-4a01-b001-000000000062",
+      "name": "Update Vikunja Task",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2980, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot8518425010:AAEKw_yU8Y_LK9KzbUcfWkxGsZ4WiRxYN5Q/sendMessage",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "={{ $('Parse Message').item.json.chat_id }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $('Find and Prepare').item.json.confirmation_text }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f1a2b3c4-1001-4a01-b001-000000000063",
+      "name": "Send Action Confirm",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3220, 400]
+    }
+  ],
+  "connections": {
+    "Telegram Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Message": {
+      "main": [
+        [
+          {
+            "node": "Is Voice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Voice": {
+      "main": [
+        [
+          {
+            "node": "Get File Info",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Call Ollama",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get File Info": {
+      "main": [
+        [
+          {
+            "node": "Download Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Audio": {
+      "main": [
+        [
+          {
+            "node": "Whisper Transcription",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Whisper Transcription": {
+      "main": [
+        [
+          {
+            "node": "Prepare Voice Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Voice Text": {
+      "main": [
+        [
+          {
+            "node": "Call Ollama",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Ollama": {
+      "main": [
+        [
+          {
+            "node": "Extract Task Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Task Data": {
+      "main": [
+        [
+          {
+            "node": "Is Create",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Create": {
+      "main": [
+        [
+          {
+            "node": "Create Vikunja Task",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Search Tasks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Vikunja Task": {
+      "main": [
+        [
+          {
+            "node": "Send Create Confirm",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Tasks": {
+      "main": [
+        [
+          {
+            "node": "Find and Prepare",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find and Prepare": {
+      "main": [
+        [
+          {
+            "node": "Update Vikunja Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Vikunja Task": {
+      "main": [
+        [
+          {
+            "node": "Send Action Confirm",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "workflow-v16-if-routing",
+  "meta": {},
+  "id": "workflow-telegram-voice-vikunja",
+  "tags": []
+}

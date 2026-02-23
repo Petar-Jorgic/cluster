@@ -1,0 +1,253 @@
+{
+  "name": "Daily Task Summary",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * *"
+            }
+          ]
+        }
+      },
+      "id": "a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://vikunja.vikunja.svc.cluster.local:3456/api/v1/tasks/all?filter=done=false",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer tk_ba2a509cbe18e5368df76e9de325f55e12506358"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e",
+      "name": "Get Open Tasks",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "task-list-assignment",
+              "name": "taskList",
+              "value": "={{ $json }}",
+              "type": "string"
+            },
+            {
+              "id": "task-count-assignment",
+              "name": "taskCount",
+              "value": "={{ $json.length }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f",
+      "name": "Prepare Task Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Hier ist die Liste aller offenen Aufgaben:\n\n{{ JSON.stringify($json.taskList, null, 2) }}\n\nBitte erstelle eine Zusammenfassung in Deutsch mit folgenden Informationen:\n1. Gesamtanzahl der offenen Aufgaben\n2. Aufgaben nach Priorität gruppiert (sehr hoch bis sehr niedrig)\n3. Heute fällige Aufgaben (Datum: 2026-02-16)\n4. In den nächsten 3 Tagen fällige Aufgaben\n5. Überfällige Aufgaben\n\nFormatiere die Zusammenfassung als übersichtlichen Text mit Markdown-Formatierung.",
+        "options": {}
+      },
+      "id": "d4e5f6a7-b8c9-0d1e-2f3a-4b5c6d7e8f9a",
+      "name": "Basic LLM Chain",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "model": "llama3.1:8b-instruct-q4_0",
+        "options": {}
+      },
+      "id": "e5f6a7b8-c9d0-1e2f-3a4b-5c6d7e8f9a0b",
+      "name": "Ollama Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        920,
+        520
+      ],
+      "credentials": {
+        "ollamaApi": {
+          "id": "ollama-credentials",
+          "name": "Ollama API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "summary-assignment",
+              "name": "summary",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            },
+            {
+              "id": "timestamp-assignment",
+              "name": "timestamp",
+              "value": "={{ new Date().toISOString() }}",
+              "type": "string"
+            },
+            {
+              "id": "task-count-assignment",
+              "name": "total_tasks",
+              "value": "={{ $('Prepare Task Data').item.json.taskCount }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f6a7b8c9-d0e1-2f3a-4b5c-6d7e8f9a0b1c",
+      "name": "Format Summary Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot8518425010:AAEKw_yU8Y_LK9KzbUcfWkxGsZ4WiRxYN5Q/sendMessage",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={ \"chat_id\": 7807385951, \"text\": $json.summary, \"parse_mode\": \"Markdown\" }",
+        "options": {}
+      },
+      "id": "a7b8c9d0-e1f2-3a4b-5c6d-7e8f9a0b1c2d",
+      "name": "Send to Telegram",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1340,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Open Tasks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Open Tasks": {
+      "main": [
+        [
+          {
+            "node": "Prepare Task Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Task Data": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Format Summary Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Summary Output": {
+      "main": [
+        [
+          {
+            "node": "Send to Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "workflow-v1-daily-summary",
+  "meta": {},
+  "id": "workflow-daily-task-summary",
+  "tags": []
+}

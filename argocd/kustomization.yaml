@@ -19,3 +19,4 @@ resources:
   - flaresolverr.yaml
   - card-sniper.yaml
   - adguard.yaml
+  - trillium.yaml

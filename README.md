@@ -7,7 +7,7 @@ GitOps-managed K3s cluster running on a single node in Vienna, Austria. All appl
 ```mermaid
 graph TB
     subgraph Internet
-        CF[Cloudflare Tunnel]
+        PG[Pangolin Tunnel]
         GH[GitHub Repository]
     end
 
@@ -45,7 +45,7 @@ graph TB
         end
     end
 
-    CF --> TRAEFIK
+    PG --> TRAEFIK
     TRAEFIK --> JF & ARR & IMMICH & WP & VIK & IT
     JF -->|M3U Tuner 1| IPTV
     JF -->|M3U Tuner 2| GH
@@ -82,11 +82,11 @@ graph LR
         B7[wood.pj-home-lab.com]
     end
 
-    subgraph Cloudflare Tunnel
-        CF[cloudflared]
+    subgraph Pangolin Tunnel
+        PG2[Newt Client]
     end
 
-    CF --> B1 & B2 & B3 & B4 & B5 & B6 & B7
+    PG2 --> B1 & B2 & B3 & B4 & B5 & B6 & B7
 ```
 
 ## Applications
@@ -100,7 +100,6 @@ graph LR
 | [Vikunja](apps/vikunja/) | `vikunja` | Task management | vikunja.local | vikunja.pj-home-lab.com |
 | [Woodpecker](apps/woodpecker/) | `woodpecker` | CI/CD pipeline | - | wood.pj-home-lab.com |
 | [IT-Tools](apps/it-tools/) | `it-tools` | IT utilities | it-tools.local | tools.pj-home-lab.com |
-| [Cloudflare](apps/cloudflare/) | `cloudflare` | Tunnel for external access | - | - |
 
 ### External Repos
 
@@ -151,7 +150,6 @@ argocd/
   vikunja.yaml         -> apps/vikunja/
   woodpecker.yaml      -> apps/woodpecker/
   it-tools.yaml        -> apps/it-tools/
-  cloudflare.yaml      -> apps/cloudflare/
 ```
 
 All applications have **automated sync**, **prune**, and **self-heal** enabled.

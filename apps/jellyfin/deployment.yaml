@@ -22,6 +22,8 @@ spec:
         app.kubernetes.io/name: jellyfin
         app.kubernetes.io/part-of: jellyfin
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: pj
       containers:
         - name: jellyfin
           image: jellyfin/jellyfin:latest
@@ -45,6 +47,8 @@ spec:
               mountPath: /cache
             - name: media
               mountPath: /media
+            - name: dri
+              mountPath: /dev/dri
       volumes:
         - name: config
           persistentVolumeClaim:
@@ -54,3 +58,6 @@ spec:
         - name: media
           persistentVolumeClaim:
             claimName: jellyfin-media
+        - name: dri
+          hostPath:
+            path: /dev/dri

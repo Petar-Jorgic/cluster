@@ -38,6 +38,8 @@ spec:
           ports:
             - name: http
               containerPort: 8096
+          securityContext:
+            privileged: true
           resources:
             requests:
               cpu: 500m

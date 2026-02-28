@@ -11,7 +11,7 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: vikunja.local
+    - host: vikunja.lan
       http:
         paths:
           - path: /

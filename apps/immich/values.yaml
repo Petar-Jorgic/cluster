@@ -30,7 +30,7 @@ server:
       enabled: true
       ingressClassName: traefik
       hosts:
-        - host: immich.local
+        - host: immich.lan
           paths:
             - path: /
 

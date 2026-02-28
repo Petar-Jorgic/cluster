@@ -11,7 +11,7 @@ spec:
   ingressClassName: traefik
   rules:
     # Sonarr
-    - host: sonarr.local
+    - host: sonarr.lan
       http:
         paths:
           - path: /
@@ -32,7 +32,7 @@ spec:
                 port:
                   number: 8989
     # Radarr
-    - host: radarr.local
+    - host: radarr.lan
       http:
         paths:
           - path: /
@@ -53,7 +53,7 @@ spec:
                 port:
                   number: 7878
     # Prowlarr
-    - host: prowlarr.local
+    - host: prowlarr.lan
       http:
         paths:
           - path: /
@@ -74,7 +74,7 @@ spec:
                 port:
                   number: 9696
     # Jellyseerr
-    - host: jellyseerr.local
+    - host: jellyseerr.lan
       http:
         paths:
           - path: /
@@ -95,7 +95,7 @@ spec:
                 port:
                   number: 5055
     # qBittorrent (original UI)
-    - host: qbittorrent.local
+    - host: qbittorrent.lan
       http:
         paths:
           - path: /
@@ -106,7 +106,7 @@ spec:
                 port:
                   number: 8080
     # Bazarr
-    - host: bazarr.local
+    - host: bazarr.lan
       http:
         paths:
           - path: /

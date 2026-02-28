@@ -11,7 +11,7 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: mealie.local
+    - host: mealie.lan
       http:
         paths:
           - path: /

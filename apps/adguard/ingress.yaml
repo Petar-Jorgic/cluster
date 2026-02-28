@@ -10,7 +10,7 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: adguard.local
+    - host: adguard.lan
       http:
         paths:
           - path: /

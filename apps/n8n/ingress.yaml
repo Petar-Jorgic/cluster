@@ -12,10 +12,10 @@ spec:
   ingressClassName: traefik
   tls:
     - hosts:
-        - n8n.local
+        - n8n.lan
       secretName: n8n-tls
   rules:
-    - host: n8n.local
+    - host: n8n.lan
       http:
         paths:
           - path: /

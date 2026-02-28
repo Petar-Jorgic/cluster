@@ -1,0 +1,192 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: serbian-epg-script
+  namespace: jellyfin
+data:
+  serbian-epg.py: |
+    #!/usr/bin/env python3
+    """Fetch Serbian TV EPG from mts.rs and generate XMLTV for Jellyfin."""
+
+    import json
+    import os
+    import sys
+    import urllib.request
+    import urllib.error
+    from datetime import datetime, timedelta
+
+    OUTPUT = os.environ.get("OUTPUT_PATH", "/config/data/serbian-epg.xml")
+    DAYS = int(os.environ.get("EPG_DAYS", "2"))
+
+    CHANNELS = {
+        "tv_pink": "Pink TV",
+        "red_tv": "Red TV",
+        "Narodna_TV": "Narodna TV",
+        "rts_1_hd": "RTS 1",
+        "rts_2_hd": "RTS 2",
+        "tv_hram": "TV Hram",
+    }
+
+    MTS_URL = (
+        "https://mts.rs/hybris/ecommerce/b2c/v1/products/search"
+        "?sort=pozicija-rastuce"
+        "&searchQueryContext=CHANNEL_PROGRAM"
+        "&query=:pozicija-rastuce:tip-kanala-radio:TV%20kanali"
+        ":channelProgramDates:{date}"
+        "&pageSize=10000"
+    )
+
+
+    def fetch_day(date_str):
+        url = MTS_URL.format(date=date_str)
+        req = urllib.request.Request(url)
+        try:
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                return json.loads(resp.read())
+        except urllib.error.HTTPError as e:
+            print(f"  HTTP error {e.code} fetching {date_str}")
+            return None
+
+
+    def xml_escape(text):
+        if not text:
+            return ""
+        return (text.replace("&", "&amp;")
+                    .replace("<", "&lt;")
+                    .replace(">", "&gt;")
+                    .replace('"', "&quot;")
+                    .replace("'", "&apos;"))
+
+
+    def format_time(iso_str):
+        for fmt in ("%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%S"):
+            try:
+                dt = datetime.strptime(iso_str.replace("+00:00", "+0000")
+                                              .replace("Z", "+0000"), fmt)
+                return dt.strftime("%Y%m%d%H%M%S %z").strip()
+            except ValueError:
+                continue
+        return iso_str
+
+
+    def main():
+        print(f"Serbian EPG generator - fetching {DAYS} days")
+
+        all_programs = {ch_id: [] for ch_id in CHANNELS}
+        today = datetime.now()
+
+        for day_offset in range(DAYS):
+            date = today + timedelta(days=day_offset)
+            date_str = date.strftime("%Y-%m-%d")
+            print(f"  Fetching {date_str}...")
+            data = fetch_day(date_str)
+            if not data or "products" not in data:
+                print(f"  No data for {date_str}")
+                continue
+
+            for product in data["products"]:
+                code = product.get("code", "")
+                if code in CHANNELS:
+                    programs = product.get("programs", [])
+                    all_programs[code].extend(programs)
+                    print(f"    {CHANNELS[code]}: {len(programs)} programs")
+
+        lines = ['<?xml version="1.0" encoding="UTF-8"?>']
+        lines.append('<tv generator-info-name="serbian-epg">')
+
+        for ch_id, ch_name in CHANNELS.items():
+            lines.append(f'  <channel id="{ch_id}">')
+            lines.append(f'    <display-name lang="sr">'
+                         f'{xml_escape(ch_name)}</display-name>')
+            lines.append(f'  </channel>')
+
+        total = 0
+        for ch_id, programs in all_programs.items():
+            for prog in programs:
+                start = prog.get("start", "")
+                stop = prog.get("end", "")
+                title = prog.get("title", "")
+                if not start or not stop or not title:
+                    continue
+                start_fmt = format_time(start)
+                stop_fmt = format_time(stop)
+                lines.append(
+                    f'  <programme start="{start_fmt}" '
+                    f'stop="{stop_fmt}" channel="{ch_id}">'
+                )
+                lines.append(f'    <title lang="sr">'
+                             f'{xml_escape(title)}</title>')
+                desc = prog.get("description", "")
+                if desc:
+                    lines.append(f'    <desc lang="sr">'
+                                 f'{xml_escape(desc)}</desc>')
+                cat = prog.get("category", "")
+                if cat:
+                    lines.append(f'    <category lang="sr">'
+                                 f'{xml_escape(cat)}</category>')
+                img = prog.get("picture", {})
+                if img and img.get("url"):
+                    lines.append(f'    <icon src="{xml_escape(img["url"])}" />')
+                lines.append(f'  </programme>')
+                total += 1
+
+        lines.append('</tv>')
+
+        xml_content = "\n".join(lines)
+        os.makedirs(os.path.dirname(OUTPUT), exist_ok=True)
+        with open(OUTPUT, "w", encoding="utf-8") as f:
+            f.write(xml_content)
+
+        print(f"\nDone! Wrote {total} programs to {OUTPUT}")
+
+
+    if __name__ == "__main__":
+        main()
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: serbian-epg
+  namespace: jellyfin
+spec:
+  schedule: "0 3 * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 120
+      template:
+        spec:
+          restartPolicy: Never
+          nodeSelector:
+            kubernetes.io/hostname: pj
+          containers:
+            - name: epg
+              image: python:3.12-alpine
+              command: ["python3", "/scripts/serbian-epg.py"]
+              env:
+                - name: OUTPUT_PATH
+                  value: "/config/data/serbian-epg.xml"
+                - name: EPG_DAYS
+                  value: "3"
+              volumeMounts:
+                - name: script
+                  mountPath: /scripts
+                - name: jellyfin-config
+                  mountPath: /config
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 32Mi
+                limits:
+                  cpu: 200m
+                  memory: 64Mi
+          volumes:
+            - name: script
+              configMap:
+                name: serbian-epg-script
+            - name: jellyfin-config
+              persistentVolumeClaim:
+                claimName: jellyfin-config

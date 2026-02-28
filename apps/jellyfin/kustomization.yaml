@@ -11,3 +11,4 @@ resources:
   - ingress.yaml
   - genre-collections-secret.yaml
   - genre-collections-cronjob.yaml
+  - serbian-epg-cronjob.yaml

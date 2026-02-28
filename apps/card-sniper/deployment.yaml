@@ -20,7 +20,7 @@ spec:
       containers:
         - name: card-sniper
           image: ghcr.io/petar-jorgic/card-sniper:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8000
           env:

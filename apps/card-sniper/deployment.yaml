@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: card-sniper
+  labels:
+    app.kubernetes.io/name: card-sniper
+    app.kubernetes.io/part-of: card-sniper
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: card-sniper
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: card-sniper
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: pj
+      containers:
+        - name: card-sniper
+          image: ghcr.io/petar-jorgic/card-sniper:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DATABASE_PATH
+              value: /data/card-sniper.db
+            - name: FLARESOLVERR_URL
+              value: http://flaresolverr.flaresolverr.svc:8191
+          envFrom:
+            - secretRef:
+                name: card-sniper-env
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: card-sniper-data

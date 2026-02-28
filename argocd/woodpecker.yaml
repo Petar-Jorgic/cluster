@@ -6,9 +6,9 @@ metadata:
 spec:
   project: default
   sources:
-    - repoURL: https://woodpecker-ci.org/charts
+    - repoURL: ghcr.io/woodpecker-ci/helm
       chart: woodpecker
-      targetRevision: "3.1.0"
+      targetRevision: "3.5.1"
       helm:
         valueFiles:
           - $values/apps/woodpecker/values.yaml

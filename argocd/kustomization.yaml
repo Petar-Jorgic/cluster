@@ -6,7 +6,6 @@ resources:
   - secrets.yaml
   - immich.yaml
   - monitoring.yaml
-  - woodpecker.yaml
   - vikunja.yaml
   - jellyfin.yaml
   - it-tools.yaml

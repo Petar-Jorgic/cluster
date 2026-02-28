@@ -7,6 +7,16 @@ server:
     WOODPECKER_OPEN: "false"
   extraSecretNamesForEnvFrom:
     - woodpecker-secrets
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hosts:
+      - host: woodpecker.lan
+        paths:
+          - path: /
+      - host: wood.pj-home-lab.com
+        paths:
+          - path: /
 
 agent:
   enabled: true

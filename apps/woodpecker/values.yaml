@@ -5,6 +5,8 @@ server:
     WOODPECKER_GITHUB: "true"
     WOODPECKER_HOST: https://wood.pj-home-lab.com
     WOODPECKER_OPEN: "false"
+    WOODPECKER_PLUGINS_PRIVILEGED: "woodpeckerci/plugin-docker-buildx"
+    WOODPECKER_ADMIN: "Petar-Jorgic"
   extraSecretNamesForEnvFrom:
     - woodpecker-secrets
   ingress:

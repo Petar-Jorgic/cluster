@@ -7,3 +7,7 @@ server:
     WOODPECKER_OPEN: "false"
   extraSecretNamesForEnvFrom:
     - woodpecker-secrets
+
+agent:
+  enabled: true
+  replicaCount: 1

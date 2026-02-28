@@ -4,6 +4,7 @@ namespace: card-sniper
 resources:
   - pvc.yaml
   - secret.yaml
+  - ghcr-pull-secret.yaml
   - deployment.yaml
   - service.yaml
   - ingress.yaml

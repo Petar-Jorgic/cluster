@@ -1,0 +1,195 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: genre-collections-script
+  namespace: jellyfin
+data:
+  genre-collections.py: |
+    #!/usr/bin/env python3
+    """Jellyfin Genre Collection Sync
+
+    Automatically creates and maintains genre-based collections.
+    """
+
+    import json
+    import os
+    import sys
+    import urllib.request
+    import urllib.parse
+    import urllib.error
+
+    JF = os.environ.get("JELLYFIN_URL", "http://jellyfin.jellyfin.svc:8096")
+    API_KEY = os.environ.get("JELLYFIN_API_KEY", "")
+    USER_ID = os.environ.get("JELLYFIN_USER_ID", "")
+    MIN_ITEMS = int(os.environ.get("MIN_ITEMS", "3"))
+
+    GENRE_ALIASES = {
+        "Sci-Fi": "Science Fiction",
+        "Sci-Fi & Fantasy": "Science Fiction",
+        "Action & Adventure": "Action",
+    }
+
+    SKIP_GENRES = {"Video", "Short", "Talk-Show", "Reality-TV", "Reality"}
+    BATCH_SIZE = 25
+
+
+    def api(endpoint, method="GET", data=None):
+        sep = "&" if "?" in endpoint else "?"
+        url = f"{JF}{endpoint}{sep}api_key={API_KEY}"
+        req = urllib.request.Request(url, method=method)
+        if data is not None:
+            req.add_header("Content-Type", "application/json")
+            req.data = json.dumps(data).encode()
+        try:
+            with urllib.request.urlopen(req) as resp:
+                body = resp.read()
+                return json.loads(body) if body else None
+        except urllib.error.HTTPError as e:
+            print(f"  API error {e.code} on {method} {endpoint}: {e.read().decode()}")
+            raise
+
+
+    def get_all_items(item_type):
+        items, start, batch = [], 0, 200
+        while True:
+            data = api(f"/Items?IncludeItemTypes={item_type}&Recursive=true"
+                        f"&Fields=Genres&StartIndex={start}&Limit={batch}")
+            items.extend(data["Items"])
+            if start + batch >= data["TotalRecordCount"]:
+                break
+            start += batch
+        return items
+
+
+    def get_existing_collections():
+        data = api("/Items?IncludeItemTypes=BoxSet&Recursive=true&Limit=500")
+        collections = {}
+        for col in data.get("Items", []):
+            children = api(f"/Items?ParentId={col['Id']}&Recursive=true&Limit=500")
+            child_ids = {c["Id"] for c in children.get("Items", [])}
+            collections[col["Name"]] = {"id": col["Id"], "child_ids": child_ids}
+        return collections
+
+
+    def create_collection(name):
+        encoded_name = urllib.parse.quote(name)
+        result = api(f"/Collections?Name={encoded_name}", method="POST")
+        col_id = result["Id"]
+        if USER_ID:
+            item = api(f"/Users/{USER_ID}/Items/{col_id}")
+            item["LockData"] = True
+            item["LockedFields"] = ["Name"]
+            api(f"/Items/{col_id}", method="POST", data=item)
+        return col_id
+
+
+    def add_to_collection(collection_id, item_ids):
+        ids = list(item_ids)
+        for i in range(0, len(ids), BATCH_SIZE):
+            batch = ids[i:i + BATCH_SIZE]
+            api(f"/Collections/{collection_id}/Items?Ids={','.join(batch)}", method="POST")
+
+
+    def main():
+        if not API_KEY:
+            print("ERROR: JELLYFIN_API_KEY not set")
+            sys.exit(1)
+
+        print(f"Connecting to {JF}")
+
+        print("Fetching movies...")
+        movies = get_all_items("Movie")
+        print(f"  Found {len(movies)} movies")
+
+        print("Fetching series...")
+        series = get_all_items("Series")
+        print(f"  Found {len(series)} series")
+
+        genre_items = {}
+        for item in movies + series:
+            for genre in item.get("Genres", []):
+                canonical = GENRE_ALIASES.get(genre, genre)
+                if canonical not in SKIP_GENRES:
+                    genre_items.setdefault(canonical, set()).add(item["Id"])
+
+        genre_items = {g: ids for g, ids in genre_items.items() if len(ids) >= MIN_ITEMS}
+
+        print(f"\nGenres to sync ({len(genre_items)}):")
+        for g in sorted(genre_items):
+            print(f"  {g}: {len(genre_items[g])} items")
+
+        print("\nFetching existing collections...")
+        existing = get_existing_collections()
+        created, updated = 0, 0
+
+        for genre, item_ids in sorted(genre_items.items()):
+            if genre in existing:
+                missing = item_ids - existing[genre]["child_ids"]
+                if missing:
+                    print(f"  Updating '{genre}': +{len(missing)} items")
+                    add_to_collection(existing[genre]["id"], missing)
+                    updated += 1
+            else:
+                print(f"  Creating '{genre}' ({len(item_ids)} items)")
+                col_id = create_collection(genre)
+                add_to_collection(col_id, item_ids)
+                created += 1
+
+        print(f"\nDone! Created: {created}, Updated: {updated}")
+
+
+    if __name__ == "__main__":
+        main()
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: genre-collections
+  namespace: jellyfin
+spec:
+  schedule: "0 4 * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 300
+      template:
+        spec:
+          restartPolicy: Never
+          nodeSelector:
+            kubernetes.io/hostname: pj
+          containers:
+            - name: sync
+              image: python:3.12-alpine
+              command: ["python3", "/scripts/genre-collections.py"]
+              env:
+                - name: JELLYFIN_URL
+                  value: "http://jellyfin.jellyfin.svc:8096"
+                - name: JELLYFIN_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: jellyfin-api-key
+                      key: api-key
+                - name: JELLYFIN_USER_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: jellyfin-api-key
+                      key: user-id
+                - name: MIN_ITEMS
+                  value: "3"
+              volumeMounts:
+                - name: script
+                  mountPath: /scripts
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 32Mi
+                limits:
+                  cpu: 200m
+                  memory: 64Mi
+          volumes:
+            - name: script
+              configMap:
+                name: genre-collections-script

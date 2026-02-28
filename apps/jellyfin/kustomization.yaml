@@ -9,3 +9,5 @@ resources:
   - deployment.yaml
   - service.yaml
   - ingress.yaml
+  - genre-collections-secret.yaml
+  - genre-collections-cronjob.yaml

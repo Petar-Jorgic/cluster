@@ -4,7 +4,7 @@ kind: Kustomization
 namespace: trillium
 
 resources:
-  - nas-pvc.yaml
+  - pvc.yaml
   - deployment.yaml
   - service.yaml
   - ingress.yaml

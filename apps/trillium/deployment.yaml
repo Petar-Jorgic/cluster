@@ -45,4 +45,4 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: trillium-data
+            claimName: trillium-local

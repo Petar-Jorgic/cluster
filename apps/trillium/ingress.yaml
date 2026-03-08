@@ -20,7 +20,7 @@ spec:
                 name: trillium
                 port:
                   number: 8080
-    - host: trillium.pj-home-lab.com
+    - host: trill.pj-home-lab.com
       http:
         paths:
           - path: /

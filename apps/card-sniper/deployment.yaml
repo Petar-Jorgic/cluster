@@ -21,7 +21,7 @@ spec:
         kubernetes.io/hostname: pj
       containers:
         - name: card-sniper
-          image: ghcr.io/petar-jorgic/card-sniper:fa2b042894ce0aae21ff05a9805dd76a03e15d70
+          image: ghcr.io/petar-jorgic/card-sniper:99159eb6f0472c5e34ea87d05190d13dbf1f094e
           imagePullPolicy: Always
           ports:
             - containerPort: 8000

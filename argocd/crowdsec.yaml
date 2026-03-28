@@ -25,3 +25,10 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+      - RespectIgnoreDifferences=true
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: crowdsec-lapi-secrets
+      jsonPointers:
+        - /data

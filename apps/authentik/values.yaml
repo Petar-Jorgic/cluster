@@ -1,5 +1,7 @@
 authentik:
   secret_key: "0724d36262c9e1c1006ff25974019adc95a38dfdc77ca13072c0703e41d787f5"
+  postgresql:
+    password: "0724d36262c9e1c1006ff25974019adc"
   error_reporting:
     enabled: false
 

@@ -7,6 +7,7 @@ authentik:
 
 server:
   replicas: 1
+  enableServiceLinks: false
   resources:
     requests:
       cpu: 100m
@@ -28,6 +29,7 @@ server:
 
 worker:
   replicas: 1
+  enableServiceLinks: false
   resources:
     requests:
       cpu: 50m

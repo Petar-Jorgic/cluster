@@ -8,6 +8,8 @@ authentik:
 server:
   replicas: 1
   enableServiceLinks: false
+  nodeSelector:
+    kubernetes.io/hostname: pj
   resources:
     requests:
       cpu: 100m
@@ -30,6 +32,8 @@ server:
 worker:
   replicas: 1
   enableServiceLinks: false
+  nodeSelector:
+    kubernetes.io/hostname: pj
   resources:
     requests:
       cpu: 100m
@@ -37,6 +41,15 @@ worker:
     limits:
       cpu: 500m
       memory: 1Gi
+  livenessProbe:
+    initialDelaySeconds: 60
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+  startupProbe:
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    failureThreshold: 30
 
 postgresql:
   enabled: true

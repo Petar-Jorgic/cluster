@@ -16,6 +16,8 @@ spec:
       labels:
         app: readarr
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: pj
       containers:
         - name: readarr
           image: linuxserver/readarr:develop

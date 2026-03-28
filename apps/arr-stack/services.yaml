@@ -91,6 +91,21 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  name: readarr
+  labels:
+    app: readarr
+spec:
+  clusterIP: 10.43.100.21
+  selector:
+    app: readarr
+  ports:
+    - port: 8787
+      targetPort: 8787
+      name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
   name: bazarr
   labels:
     app: bazarr

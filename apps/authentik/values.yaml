@@ -36,6 +36,8 @@ worker:
 
 postgresql:
   enabled: true
+  auth:
+    password: "0724d36262c9e1c1006ff25974019adc"
   primary:
     persistence:
       enabled: true

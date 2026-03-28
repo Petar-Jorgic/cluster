@@ -34,7 +34,7 @@ spec:
             - name: ADMIN_USERNAME
               value: admin
             - name: ADMIN_PASSWORD
-              value: admin
+              value: admin123456
             - name: TZ
               value: Europe/Berlin
           ports:

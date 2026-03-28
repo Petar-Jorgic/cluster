@@ -21,6 +21,7 @@ spec:
         app.kubernetes.io/name: semaphore
         app.kubernetes.io/part-of: semaphore
     spec:
+      enableServiceLinks: false
       containers:
         - name: semaphore
           image: semaphoreui/semaphore:latest

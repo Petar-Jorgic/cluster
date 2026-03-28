@@ -18,6 +18,8 @@ spec:
       labels:
         app.kubernetes.io/name: uptime-kuma
     spec:
+      securityContext:
+        fsGroup: 1000
       nodeSelector:
         kubernetes.io/hostname: pj
       containers:

@@ -1,27 +1,15 @@
 apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: uptime-kuma-nfs-pv
-spec:
-  capacity:
-    storage: 5Gi
-  accessModes:
-    - ReadWriteMany
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: nfs-uptime-kuma
-  nfs:
-    server: 192.168.1.162
-    path: /volume1/docker/uptime-kuma
----
-apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: uptime-kuma-data
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: uptime-kuma
+    app.kubernetes.io/part-of: uptime-kuma
 spec:
   accessModes:
-    - ReadWriteMany
-  storageClassName: nfs-uptime-kuma
+    - ReadWriteOnce
+  storageClassName: local-path
   resources:
     requests:
       storage: 5Gi
-  volumeName: uptime-kuma-nfs-pv

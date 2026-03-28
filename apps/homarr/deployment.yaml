@@ -29,7 +29,7 @@ spec:
             - name: TZ
               value: Europe/Berlin
             - name: SECRET_ENCRYPTION_KEY
-              value: your_32_char_secret_key_here_1234
+              value: d045943d82c3d999daabb71167665c7960d2ccab787d9091ca80020b5e49c024
           volumeMounts:
             - name: data
               mountPath: /appdata

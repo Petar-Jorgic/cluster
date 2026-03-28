@@ -41,3 +41,9 @@ lapi:
   env:
     - name: TZ
       value: "Europe/Berlin"
+    - name: DISABLE_ONLINE_API
+      value: "true"
+    - name: USE_WAL
+      value: "true"
+    - name: NO_FILE_ACQUISITION
+      value: "true"

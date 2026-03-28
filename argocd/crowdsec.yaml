@@ -32,3 +32,8 @@ spec:
       name: crowdsec-lapi-secrets
       jsonPointers:
         - /data
+    - group: apps
+      kind: Deployment
+      name: crowdsec-lapi
+      jsonPointers:
+        - /spec/template/metadata/annotations

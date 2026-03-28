@@ -19,3 +19,13 @@ resources:
   - adguard.yaml
   - trillium.yaml
   - gotify.yaml
+  - miniflux.yaml
+  - semaphore.yaml
+  - uptime-kuma.yaml
+  - ntfy.yaml
+  - homarr.yaml
+  - audiobookshelf.yaml
+  - paperless-ngx.yaml
+  - authentik.yaml
+  - loki.yaml
+  - crowdsec.yaml

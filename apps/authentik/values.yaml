@@ -1,0 +1,71 @@
+authentik:
+  secret_key: "0724d36262c9e1c1006ff25974019adc95a38dfdc77ca13072c0703e41d787f5"
+  error_reporting:
+    enabled: false
+
+server:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hosts:
+      - auth.lan
+      - auth.pj-home-lab.com
+    annotations:
+      traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+      traefik.ingress.kubernetes.io/router.tls: "true"
+  service:
+    type: ClusterIP
+
+worker:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+postgresql:
+  enabled: true
+  primary:
+    persistence:
+      enabled: true
+      storageClass: local-path
+      size: 8Gi
+    nodeSelector:
+      kubernetes.io/hostname: pj
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+redis:
+  enabled: true
+  architecture: standalone
+  master:
+    persistence:
+      enabled: false
+    resources:
+      requests:
+        cpu: 25m
+        memory: 32Mi
+      limits:
+        cpu: 250m
+        memory: 128Mi
+
+global:
+  env:
+    - name: TZ
+      value: "Europe/Berlin"

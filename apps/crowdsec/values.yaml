@@ -1,0 +1,43 @@
+container_runtime: containerd
+
+agent:
+  acquisition:
+    - namespace: traefik
+      podName: traefik-*
+      program: traefik
+      poll_without_inotify: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  env:
+    - name: TZ
+      value: "Europe/Berlin"
+    - name: COLLECTIONS
+      value: "crowdsecurity/traefik crowdsecurity/http-cve crowdsecurity/linux"
+
+lapi:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  persistentVolume:
+    data:
+      enabled: true
+      storageClassName: local-path
+      size: 2Gi
+    config:
+      enabled: true
+      storageClassName: local-path
+      size: 1Gi
+  nodeSelector:
+    kubernetes.io/hostname: pj
+  env:
+    - name: TZ
+      value: "Europe/Berlin"

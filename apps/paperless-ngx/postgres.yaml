@@ -1,0 +1,87 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: paperless-postgres-data
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: paperless-postgres
+    app.kubernetes.io/part-of: paperless-ngx
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paperless-postgres
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: paperless-postgres
+    app.kubernetes.io/part-of: paperless-ngx
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: paperless-postgres
+      app.kubernetes.io/part-of: paperless-ngx
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/managed-by: kustomize
+        app.kubernetes.io/name: paperless-postgres
+        app.kubernetes.io/part-of: paperless-ngx
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: pj
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: paperless
+            - name: POSTGRES_USER
+              value: paperless
+            - name: POSTGRES_PASSWORD
+              value: 1af95c02e503ff6525d96609ddbe4b3a
+            - name: TZ
+              value: Europe/Berlin
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+              subPath: pgdata
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: paperless-postgres-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: paperless-postgres
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: paperless-postgres
+    app.kubernetes.io/part-of: paperless-ngx
+spec:
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: paperless-postgres
+    app.kubernetes.io/part-of: paperless-ngx
+  ports:
+    - port: 5432
+      targetPort: 5432

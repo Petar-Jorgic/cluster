@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ntfy
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: ntfy
+    app.kubernetes.io/part-of: ntfy
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ntfy
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ntfy
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: pj
+      containers:
+        - name: ntfy
+          image: binwiederhier/ntfy:latest
+          command: ["ntfy", "serve"]
+          ports:
+            - containerPort: 80
+          env:
+            - name: TZ
+              value: Europe/Berlin
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/ntfy
+              subPath: lib
+            - name: data
+              mountPath: /var/cache/ntfy
+              subPath: cache
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: ntfy-data

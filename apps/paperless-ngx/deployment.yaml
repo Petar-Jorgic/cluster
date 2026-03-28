@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paperless-ngx
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: paperless-ngx
+    app.kubernetes.io/part-of: paperless-ngx
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: paperless-ngx
+      app.kubernetes.io/part-of: paperless-ngx
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/managed-by: kustomize
+        app.kubernetes.io/name: paperless-ngx
+        app.kubernetes.io/part-of: paperless-ngx
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: pj
+      containers:
+        - name: paperless-ngx
+          image: ghcr.io/paperless-ngx/paperless-ngx:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: PAPERLESS_DBHOST
+              value: paperless-postgres
+            - name: PAPERLESS_DBPORT
+              value: "5432"
+            - name: PAPERLESS_DBNAME
+              value: paperless
+            - name: PAPERLESS_DBUSER
+              value: paperless
+            - name: PAPERLESS_DBPASS
+              value: 1af95c02e503ff6525d96609ddbe4b3a
+            - name: PAPERLESS_REDIS
+              value: redis://paperless-redis:6379
+            - name: PAPERLESS_SECRET_KEY
+              value: 3edc2fec72329d4794be2844ca2e70acfbe1c6dd3819e87a789d1c8f90be2de8
+            - name: PAPERLESS_URL
+              value: https://paperless.pj-home-lab.com
+            - name: PAPERLESS_TIME_ZONE
+              value: Europe/Berlin
+            - name: PAPERLESS_OCR_LANGUAGE
+              value: deu+eng
+            - name: PAPERLESS_ADMIN_USER
+              value: admin
+            - name: PAPERLESS_ADMIN_PASSWORD
+              value: admin
+            - name: USERMAP_UID
+              value: "1000"
+            - name: USERMAP_GID
+              value: "1000"
+            - name: TZ
+              value: Europe/Berlin
+          volumeMounts:
+            - name: paperless-data
+              mountPath: /usr/src/paperless/data
+              subPath: data
+            - name: paperless-data
+              mountPath: /usr/src/paperless/media
+              subPath: media
+            - name: paperless-data
+              mountPath: /usr/src/paperless/consume
+              subPath: consume
+            - name: paperless-data
+              mountPath: /usr/src/paperless/export
+              subPath: export
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 1536Mi
+      volumes:
+        - name: paperless-data
+          persistentVolumeClaim:
+            claimName: paperless-data

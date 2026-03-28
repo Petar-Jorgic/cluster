@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: miniflux
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: miniflux
+    app.kubernetes.io/part-of: miniflux
+spec:
+  type: ClusterIP
+  clusterIP: 10.43.100.12
+  selector:
+    app.kubernetes.io/name: miniflux
+    app.kubernetes.io/part-of: miniflux
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP

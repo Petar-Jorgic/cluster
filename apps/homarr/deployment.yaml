@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: homarr
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: homarr
+    app.kubernetes.io/part-of: homarr
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: homarr
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: homarr
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: pj
+      containers:
+        - name: homarr
+          image: ghcr.io/homarr-labs/homarr:latest
+          ports:
+            - containerPort: 7575
+          env:
+            - name: TZ
+              value: Europe/Berlin
+            - name: SECRET_ENCRYPTION_KEY
+              value: your_32_char_secret_key_here_1234
+          volumeMounts:
+            - name: data
+              mountPath: /appdata
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: homarr-data

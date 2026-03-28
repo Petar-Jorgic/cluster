@@ -22,9 +22,6 @@ grafana:
     auth.anonymous:
       enabled: true
       org_role: Viewer
-    server:
-      root_url: "%(protocol)s://%(domain)s/grafana"
-      serve_from_sub_path: true
     database:
       type: postgres
       host: grafana-postgres.monitoring.svc.cluster.local:5432
@@ -39,12 +36,21 @@ grafana:
       labelValue: "1"
       folder: /tmp/dashboards
       folderAnnotation: grafana_folder
+  additionalDataSources:
+    - name: Loki
+      type: loki
+      url: http://loki.monitoring.svc.cluster.local:3100
+      access: proxy
+      isDefault: false
   ingress:
     enabled: true
     ingressClassName: traefik
     hosts:
-      - ""
-    path: /grafana
+      - grafana.lan
+      - grafana.pj-home-lab.com
+    annotations:
+      traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+      traefik.ingress.kubernetes.io/router.tls: "true"
   persistence:
     enabled: true
     size: 1Gi
@@ -77,8 +83,15 @@ nodeExporter:
 
 prometheus:
   prometheusSpec:
-    retention: 24h
-    storageSpec: {}
+    retention: 30d
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
     resources:
       requests:
         cpu: 200m

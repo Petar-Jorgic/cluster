@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: homarr-nfs-pv
+spec:
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-homarr
+  nfs:
+    server: 192.168.1.162
+    path: /volume1/docker/homarr
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: homarr-data
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs-homarr
+  resources:
+    requests:
+      storage: 2Gi
+  volumeName: homarr-nfs-pv

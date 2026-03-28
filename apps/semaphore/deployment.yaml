@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: semaphore
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: semaphore
+    app.kubernetes.io/part-of: semaphore
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: semaphore
+      app.kubernetes.io/part-of: semaphore
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/managed-by: kustomize
+        app.kubernetes.io/name: semaphore
+        app.kubernetes.io/part-of: semaphore
+    spec:
+      containers:
+        - name: semaphore
+          image: semaphoreui/semaphore:latest
+          env:
+            - name: SEMAPHORE_DB_DIALECT
+              value: postgres
+            - name: SEMAPHORE_DB_HOST
+              value: semaphore-postgres
+            - name: SEMAPHORE_DB_PORT
+              value: "5432"
+            - name: SEMAPHORE_DB_NAME
+              value: semaphore
+            - name: SEMAPHORE_DB_USER
+              value: semaphore
+            - name: SEMAPHORE_DB_PASS
+              value: "882b67148c260c2307b16f5453b2a5be"
+            - name: SEMAPHORE_ADMIN
+              value: admin
+            - name: SEMAPHORE_ADMIN_PASSWORD
+              value: admin
+            - name: SEMAPHORE_ADMIN_EMAIL
+              value: admin@localhost
+            - name: SEMAPHORE_ADMIN_NAME
+              value: Admin
+            - name: TZ
+              value: Europe/Berlin
+          ports:
+            - name: http
+              containerPort: 3000
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          volumeMounts:
+            - name: semaphore-data
+              mountPath: /etc/semaphore
+      volumes:
+        - name: semaphore-data
+          persistentVolumeClaim:
+            claimName: semaphore-data
+      nodeSelector:
+        kubernetes.io/hostname: pj

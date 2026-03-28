@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paperless-redis
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: paperless-redis
+    app.kubernetes.io/part-of: paperless-ngx
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: paperless-redis
+      app.kubernetes.io/part-of: paperless-ngx
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/managed-by: kustomize
+        app.kubernetes.io/name: paperless-redis
+        app.kubernetes.io/part-of: paperless-ngx
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: pj
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          command: ["redis-server", "--save", "60", "1"]
+          ports:
+            - containerPort: 6379
+          env:
+            - name: TZ
+              value: Europe/Berlin
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: paperless-redis
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: paperless-redis
+    app.kubernetes.io/part-of: paperless-ngx
+spec:
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: paperless-redis
+    app.kubernetes.io/part-of: paperless-ngx
+  ports:
+    - port: 6379
+      targetPort: 6379

@@ -1,0 +1,91 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: miniflux-postgres-data
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: miniflux-postgres
+    app.kubernetes.io/part-of: miniflux
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: miniflux-postgres
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: miniflux-postgres
+    app.kubernetes.io/part-of: miniflux
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: miniflux-postgres
+      app.kubernetes.io/part-of: miniflux
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/managed-by: kustomize
+        app.kubernetes.io/name: miniflux-postgres
+        app.kubernetes.io/part-of: miniflux
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          env:
+            - name: POSTGRES_DB
+              value: miniflux
+            - name: POSTGRES_USER
+              value: miniflux
+            - name: POSTGRES_PASSWORD
+              value: "58f31d3d5ebc4e337f484213633e1153"
+            - name: TZ
+              value: Europe/Berlin
+          ports:
+            - name: postgres
+              containerPort: 5432
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+              subPath: pgdata
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: miniflux-postgres-data
+      nodeSelector:
+        kubernetes.io/hostname: pj
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: miniflux-postgres
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: miniflux-postgres
+    app.kubernetes.io/part-of: miniflux
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: miniflux-postgres
+    app.kubernetes.io/part-of: miniflux
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+      protocol: TCP

@@ -20,7 +20,7 @@ spec:
         kubernetes.io/hostname: pj
       containers:
         - name: readarr
-          image: linuxserver/readarr:develop
+          image: linuxserver/readarr:nightly
           ports:
             - containerPort: 8787
           env:

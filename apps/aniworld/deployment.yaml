@@ -23,7 +23,7 @@ spec:
       containers:
         - name: aniworld
           image: ghcr.io/phoenixthrush/aniworld-downloader:latest
-          command: ["sh", "-c", "pip install --upgrade aniworld && aniworld --web --web-expose --web-port 8080"]
+          command: ["sh", "-c", "pip install --upgrade aniworld && /home/aniworld/.local/bin/aniworld --web-ui --web-expose --web-port 8080"]
           ports:
             - containerPort: 8080
           env:

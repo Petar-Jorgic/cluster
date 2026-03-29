@@ -7,8 +7,9 @@ metadata:
     app.kubernetes.io/name: audiobookshelf
     app.kubernetes.io/part-of: audiobookshelf
   annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/service.sticky.cookie: "true"
 spec:
   ingressClassName: traefik
   rules:

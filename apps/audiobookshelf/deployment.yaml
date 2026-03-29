@@ -38,6 +38,9 @@ spec:
             - name: data
               mountPath: /metadata
               subPath: metadata
+            - name: data
+              mountPath: /podcasts
+              subPath: podcasts
           resources:
             requests:
               cpu: 50m

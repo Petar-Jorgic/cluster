@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aniworld
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: aniworld
+    app.kubernetes.io/part-of: aniworld
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: aniworld
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: aniworld
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: pj
+      containers:
+        - name: aniworld
+          image: ghcr.io/phoenixthrush/aniworld-downloader:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: TZ
+              value: Europe/Berlin
+          volumeMounts:
+            - name: data
+              mountPath: /app/downloads
+              subPath: downloads
+            - name: data
+              mountPath: /app/data
+              subPath: data
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: aniworld-data

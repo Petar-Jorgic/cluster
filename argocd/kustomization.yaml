@@ -29,3 +29,4 @@ resources:
   - authentik.yaml
   - loki.yaml
   - crowdsec.yaml
+  - aniworld.yaml

@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: aniworld-nfs-pv
+spec:
+  capacity:
+    storage: 200Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-aniworld
+  nfs:
+    server: 192.168.1.162
+    path: /volume1/docker/aniworld
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: aniworld-data
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs-aniworld
+  resources:
+    requests:
+      storage: 200Gi
+  volumeName: aniworld-nfs-pv

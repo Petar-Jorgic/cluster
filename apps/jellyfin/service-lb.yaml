@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: jellyfin-lb
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: jellyfin
+    app.kubernetes.io/part-of: jellyfin
+spec:
+  type: LoadBalancer
+  selector:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: jellyfin
+    app.kubernetes.io/part-of: jellyfin
+  ports:
+    - name: http
+      port: 8096
+      targetPort: 8096
+      protocol: TCP

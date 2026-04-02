@@ -8,6 +8,7 @@ resources:
   - nas-pvc.yaml
   - deployment.yaml
   - service.yaml
+  - service-lb.yaml
   - ingress.yaml
   - genre-collections-secret.yaml
   - genre-collections-cronjob.yaml

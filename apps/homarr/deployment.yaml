@@ -24,7 +24,7 @@ spec:
         - name: homarr
           image: ghcr.io/homarr-labs/homarr:latest
           ports:
-            - containerPort: 7575
+            - containerPort: 3000
           env:
             - name: TZ
               value: Europe/Berlin

@@ -22,8 +22,6 @@ immich:
 
 server:
   enabled: true
-  nodeSelector:
-    kubernetes.io/hostname: pj
   service:
     main:
       clusterIP: 10.43.54.197

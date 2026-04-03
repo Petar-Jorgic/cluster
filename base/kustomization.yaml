@@ -4,4 +4,3 @@ kind: Kustomization
 resources:
   - namespaces.yaml
   - pv-pvc.yaml
-  - authentik-middleware.yaml

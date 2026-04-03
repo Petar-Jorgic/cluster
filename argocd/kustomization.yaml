@@ -26,7 +26,6 @@ resources:
   - homarr.yaml
   - audiobookshelf.yaml
   - paperless-ngx.yaml
-  - authentik.yaml
   - loki.yaml
   - crowdsec.yaml
   - aniworld.yaml

@@ -7,7 +7,6 @@ metadata:
     app.kubernetes.io/part-of: arr-stack
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
-    traefik.ingress.kubernetes.io/router.middlewares: default-authentik-auth@kubernetescrd
 spec:
   ingressClassName: traefik
   rules:

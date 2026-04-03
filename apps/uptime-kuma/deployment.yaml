@@ -22,7 +22,7 @@ spec:
         kubernetes.io/hostname: pj
       containers:
         - name: uptime-kuma
-          image: louislam/uptime-kuma:1
+          image: louislam/uptime-kuma:latest
           ports:
             - containerPort: 3001
           env:

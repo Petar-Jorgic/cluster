@@ -23,7 +23,7 @@ spec:
       containers:
         - name: ntfy
           image: binwiederhier/ntfy:latest
-          command: ["ntfy", "serve"]
+          command: ["ntfy", "serve", "--config", "/etc/ntfy/server.yml"]
           ports:
             - containerPort: 80
           env:
@@ -36,6 +36,9 @@ spec:
             - name: data
               mountPath: /var/cache/ntfy
               subPath: cache
+            - name: config
+              mountPath: /etc/ntfy/server.yml
+              subPath: server.yml
           resources:
             requests:
               cpu: 25m
@@ -47,3 +50,6 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: ntfy-data
+        - name: config
+          configMap:
+            name: ntfy-config

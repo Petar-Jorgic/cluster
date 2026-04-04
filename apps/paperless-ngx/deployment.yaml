@@ -44,7 +44,11 @@ spec:
             - name: PAPERLESS_SECRET_KEY
               value: 3edc2fec72329d4794be2844ca2e70acfbe1c6dd3819e87a789d1c8f90be2de8
             - name: PAPERLESS_URL
-              value: https://paperless.pj-home-lab.com
+              value: https://paperless.lan
+            - name: PAPERLESS_CSRF_TRUSTED_ORIGINS
+              value: "https://paperless.lan,https://paperless.pj-home-lab.com"
+            - name: PAPERLESS_ALLOWED_HOSTS
+              value: "*"
             - name: PAPERLESS_TIME_ZONE
               value: Europe/Berlin
             - name: PAPERLESS_OCR_LANGUAGE

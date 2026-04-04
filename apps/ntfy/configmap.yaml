@@ -13,3 +13,4 @@ data:
     auth-default-access: deny-all
     behind-proxy: true
     enable-login: true
+    enable-signup: false

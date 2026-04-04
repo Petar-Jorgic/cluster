@@ -51,8 +51,6 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: gotify
----
 apiVersion: v1
 kind: Namespace
 metadata:

@@ -21,7 +21,6 @@ resources:
   - miniflux.yaml
   - semaphore.yaml
   - uptime-kuma.yaml
-  - ntfy.yaml
   - homarr.yaml
   - audiobookshelf.yaml
   - paperless-ngx.yaml

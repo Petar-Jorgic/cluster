@@ -26,4 +26,5 @@ resources:
   - paperless-ngx.yaml
   - loki.yaml
   - crowdsec.yaml
+  - gotify.yaml
   - aniworld.yaml

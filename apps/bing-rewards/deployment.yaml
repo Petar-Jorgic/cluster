@@ -28,15 +28,15 @@ spec:
             - name: NODE_ENV
               value: "production"
             - name: CRON_SCHEDULE
-              value: "0 8,14,20 * * *"
+              value: "37 9 * * *"
             - name: RUN_ON_START
               value: "false"
             - name: SKIP_RANDOM_SLEEP
               value: "false"
             - name: RANDOM_SLEEP_MIN
-              value: "10"
+              value: "30"
             - name: RANDOM_SLEEP_MAX
-              value: "60"
+              value: "180"
             - name: PROCESS_TIMEOUT
               value: "28800"
             - name: ACCOUNT_1_EMAIL

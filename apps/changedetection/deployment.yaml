@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: changedetection
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: changedetection
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: changedetection
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: changedetection
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: pj
+      containers:
+        - name: changedetection
+          image: ghcr.io/dgtlmoon/changedetection.io:latest
+          ports:
+            - containerPort: 5000
+          env:
+            - name: TZ
+              value: Europe/Berlin
+            - name: BASE_URL
+              value: https://changes.lan
+          volumeMounts:
+            - name: data
+              mountPath: /datastore
+          resources:
+            requests:
+              cpu: 25m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: changedetection-data

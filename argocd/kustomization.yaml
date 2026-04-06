@@ -29,3 +29,4 @@ resources:
   - gotify.yaml
   - aniworld.yaml
   - bing-rewards.yaml
+  - changedetection.yaml

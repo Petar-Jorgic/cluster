@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: changedetection
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.middlewares: default-crowdsec-bouncer@kubernetescrd
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: changes.lan
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: changedetection
+                port:
+                  number: 5000
+    - host: changes.pj-home-lab.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: changedetection
+                port:
+                  number: 5000

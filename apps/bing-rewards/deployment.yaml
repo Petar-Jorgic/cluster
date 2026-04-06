@@ -40,9 +40,15 @@ spec:
             - name: PROCESS_TIMEOUT
               value: "28800"
             - name: ACCOUNT_1_EMAIL
-              value: "REDACTED_EMAIL"
+              valueFrom:
+                secretKeyRef:
+                  name: bing-rewards-secrets
+                  key: ACCOUNT_1_EMAIL
             - name: ACCOUNT_1_PASSWORD
-              value: "REDACTED_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: bing-rewards-secrets
+                  key: ACCOUNT_1_PASSWORD
             - name: CONFIG_SEARCH_DELAY_MIN
               value: "8"
             - name: CONFIG_SEARCH_DELAY_MAX

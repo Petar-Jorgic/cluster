@@ -12,7 +12,7 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: it-tools.lan
+    - host: tools.lan
       http:
         paths:
           - path: /

@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bing-rewards
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: bing-rewards
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: bing-rewards
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: bing-rewards
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: pj
+      containers:
+        - name: bing-rewards
+          image: ghcr.io/thenetsky/microsoft-rewards-script:latest
+          env:
+            - name: TZ
+              value: "Europe/Berlin"
+            - name: NODE_ENV
+              value: "production"
+            - name: CRON_START_TIME
+              value: "0 8,14,20 * * *"
+            - name: RUN_ON_START
+              value: "false"
+            - name: SKIP_RANDOM_SLEEP
+              value: "false"
+            - name: RANDOM_SLEEP_MIN
+              value: "10"
+            - name: RANDOM_SLEEP_MAX
+              value: "60"
+            - name: PROCESS_TIMEOUT
+              value: "28800"
+            - name: ACCOUNT_1_EMAIL
+              value: "REDACTED_EMAIL"
+            - name: ACCOUNT_1_PASSWORD
+              value: "REDACTED_PASSWORD"
+            - name: CONFIG_SEARCH_DELAY_MIN
+              value: "8"
+            - name: CONFIG_SEARCH_DELAY_MAX
+              value: "25"
+            - name: CONFIG_CLUSTERS
+              value: "1"
+          volumeMounts:
+            - name: data
+              mountPath: /app/config
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 2Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: bing-rewards-data

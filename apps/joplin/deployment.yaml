@@ -22,10 +22,8 @@ spec:
         kubernetes.io/hostname: pj
       containers:
         - name: webdav
-          image: bytemark/webdav:latest
+          image: ugeek/webdav:amd64
           env:
-            - name: AUTH_TYPE
-              value: "Basic"
             - name: USERNAME
               value: "joplin"
             - name: PASSWORD
@@ -33,6 +31,8 @@ spec:
                 secretKeyRef:
                   name: joplin-env
                   key: WEBDAV_PASSWORD
+            - name: TZ
+              value: "Europe/Berlin"
           ports:
             - name: http
               containerPort: 80
@@ -45,7 +45,7 @@ spec:
               memory: 64Mi
           volumeMounts:
             - name: data
-              mountPath: /var/lib/dav/data
+              mountPath: /media
       volumes:
         - name: data
           nfs:

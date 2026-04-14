@@ -31,3 +31,4 @@ resources:
   - bing-rewards.yaml
   - changedetection.yaml
   - joplin.yaml
+  - headlamp.yaml

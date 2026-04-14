@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/name: aniworld
     app.kubernetes.io/part-of: aniworld
 spec:
-  replicas: 0  # upstream image broken: /home/aniworld/.local/bin/aniworld not found
+  replicas: 1
   strategy:
     type: Recreate
   selector:
@@ -23,7 +23,7 @@ spec:
       containers:
         - name: aniworld
           image: ghcr.io/phoenixthrush/aniworld-downloader:latest
-          command: ["sh", "-c", "pip install --upgrade aniworld && /home/aniworld/.local/bin/aniworld --web-ui --web-expose --web-port 8080 -o /app/downloads"]
+          command: ["sh", "-c", "pip install --upgrade aniworld && aniworld --web-ui --web-expose --web-port 8080 -o /app/downloads"]
           ports:
             - containerPort: 8080
           env:

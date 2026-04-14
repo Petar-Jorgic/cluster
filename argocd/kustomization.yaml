@@ -30,3 +30,4 @@ resources:
   - aniworld.yaml
   - bing-rewards.yaml
   - changedetection.yaml
+  - joplin.yaml

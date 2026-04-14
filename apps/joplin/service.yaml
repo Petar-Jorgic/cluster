@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: joplin-webdav
+  labels:
+    app.kubernetes.io/name: joplin-webdav
+    app.kubernetes.io/part-of: joplin
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: joplin-webdav
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      protocol: TCP

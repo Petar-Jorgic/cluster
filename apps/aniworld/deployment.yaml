@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/name: aniworld
     app.kubernetes.io/part-of: aniworld
 spec:
-  replicas: 1
+  replicas: 0  # upstream image broken: /home/aniworld/.local/bin/aniworld not found
   strategy:
     type: Recreate
   selector:

@@ -51,14 +51,8 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
-apiVersion: v1
-kind: Namespace
-metadata:
   name: uptime-kuma
 ---
-apiVersion: v1
-kind: Namespace
-metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -84,9 +78,6 @@ kind: Namespace
 metadata:
   name: paperless-ngx
 ---
-apiVersion: v1
-kind: Namespace
-metadata:
 apiVersion: v1
 kind: Namespace
 metadata:

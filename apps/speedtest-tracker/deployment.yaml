@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: speedtest-tracker
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: speedtest-tracker
+    app.kubernetes.io/part-of: speedtest-tracker
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: speedtest-tracker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: speedtest-tracker
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: pj
+      containers:
+        - name: speedtest-tracker
+          image: ghcr.io/alexjustesen/speedtest-tracker:latest
+          ports:
+            - containerPort: 80
+          env:
+            - name: TZ
+              value: Europe/Berlin
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: DB_CONNECTION
+              value: sqlite
+            - name: SPEEDTEST_SCHEDULE
+              value: "0 * * * *"
+            - name: PRUNE_RESULTS_OLDER_THAN
+              value: "365"
+          volumeMounts:
+            - name: config
+              mountPath: /config
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: speedtest-tracker-config

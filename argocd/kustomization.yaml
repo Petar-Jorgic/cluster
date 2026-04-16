@@ -31,3 +31,4 @@ resources:
   - bing-rewards.yaml
   - changedetection.yaml
   - headlamp.yaml
+  - speedtest-tracker.yaml

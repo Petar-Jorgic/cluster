@@ -22,7 +22,7 @@ spec:
         kubernetes.io/hostname: pj
       containers:
         - name: speedtest-tracker
-          image: ghcr.io/alexjustesen/speedtest-tracker:latest
+          image: lscr.io/linuxserver/speedtest-tracker:latest
           ports:
             - containerPort: 80
           env:

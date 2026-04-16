@@ -8,7 +8,6 @@ metadata:
     app.kubernetes.io/part-of: aniworld
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
-    traefik.ingress.kubernetes.io/router.middlewares: default-crowdsec-bouncer@kubernetescrd
     traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
   ingressClassName: traefik

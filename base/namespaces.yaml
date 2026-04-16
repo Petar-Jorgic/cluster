@@ -81,11 +81,6 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: crowdsec
----
-apiVersion: v1
-kind: Namespace
-metadata:
   name: gotify
 ---
 apiVersion: v1

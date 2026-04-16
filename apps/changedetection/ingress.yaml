@@ -5,7 +5,6 @@ metadata:
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
-    traefik.ingress.kubernetes.io/router.middlewares: default-crowdsec-bouncer@kubernetescrd
 spec:
   ingressClassName: traefik
   rules:

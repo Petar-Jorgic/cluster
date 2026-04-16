@@ -25,7 +25,7 @@ resources:
   - audiobookshelf.yaml
   - paperless-ngx.yaml
   - loki.yaml
-  - crowdsec.yaml
+
   - gotify.yaml
   - aniworld.yaml
   - bing-rewards.yaml

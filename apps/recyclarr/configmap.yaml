@@ -9,7 +9,7 @@ metadata:
 data:
   recyclarr.yml: |
     sonarr:
-      arr-stack:
+      sonarr-main:
         base_url: http://sonarr.arr-stack.svc.cluster.local:8989
         api_key: !env_var SONARR_API_KEY
 
@@ -34,7 +34,7 @@ data:
               - name: HDTV-1080p
 
     radarr:
-      arr-stack:
+      radarr-main:
         base_url: http://radarr.arr-stack.svc.cluster.local:7878
         api_key: !env_var RADARR_API_KEY
 

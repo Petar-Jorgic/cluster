@@ -32,3 +32,4 @@ resources:
   - changedetection.yaml
   - headlamp.yaml
   - speedtest-tracker.yaml
+  - recyclarr.yaml

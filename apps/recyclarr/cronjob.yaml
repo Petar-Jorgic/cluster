@@ -1,0 +1,66 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: recyclarr
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: recyclarr
+    app.kubernetes.io/part-of: recyclarr
+spec:
+  schedule: "0 4 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          nodeSelector:
+            kubernetes.io/hostname: pj
+          restartPolicy: OnFailure
+          initContainers:
+            - name: copy-config
+              image: busybox:1.36
+              command:
+                - sh
+                - -c
+                - cp /mnt/recyclarr.yml /config/recyclarr.yml && chown 1000:1000 /config/recyclarr.yml
+              volumeMounts:
+                - name: configmap
+                  mountPath: /mnt
+                - name: config
+                  mountPath: /config
+          containers:
+            - name: recyclarr
+              image: ghcr.io/recyclarr/recyclarr:7
+              args: ["sync"]
+              env:
+                - name: TZ
+                  value: Europe/Berlin
+                - name: SONARR_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: recyclarr-api-keys
+                      key: SONARR_API_KEY
+                - name: RADARR_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: recyclarr-api-keys
+                      key: RADARR_API_KEY
+              volumeMounts:
+                - name: config
+                  mountPath: /config
+              resources:
+                requests:
+                  cpu: 25m
+                  memory: 128Mi
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+          volumes:
+            - name: configmap
+              configMap:
+                name: recyclarr-config
+            - name: config
+              persistentVolumeClaim:
+                claimName: recyclarr-config

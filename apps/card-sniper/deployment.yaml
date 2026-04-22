@@ -32,6 +32,8 @@ spec:
               value: http://flaresolverr.flaresolverr.svc:8191
             - name: CARD_SNIPER_AUTO_REBUILD
               value: "1"
+            - name: REBUILD_CONCURRENCY
+              value: "2"
           envFrom:
             - secretRef:
                 name: card-sniper-env

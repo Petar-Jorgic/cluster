@@ -33,3 +33,4 @@ resources:
   - headlamp.yaml
   - speedtest-tracker.yaml
   - recyclarr.yaml
+  - reisenotiz.yaml

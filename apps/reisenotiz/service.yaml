@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: reisenotiz
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: reisenotiz
+    app.kubernetes.io/part-of: reisenotiz
+spec:
+  type: ClusterIP
+  clusterIP: 10.43.100.88
+  selector:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: reisenotiz
+    app.kubernetes.io/part-of: reisenotiz
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP

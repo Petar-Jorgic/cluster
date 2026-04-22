@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reisenotiz
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: reisenotiz
+    app.kubernetes.io/part-of: reisenotiz
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: reisenotiz
+      app.kubernetes.io/part-of: reisenotiz
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/managed-by: kustomize
+        app.kubernetes.io/name: reisenotiz
+        app.kubernetes.io/part-of: reisenotiz
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: arm64
+      containers:
+        - name: reisenotiz
+          image: ghcr.io/mrmodest/reisenotiz:edge-arm64
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: TZ
+              value: "Europe/Berlin"
+          resources:
+            requests:
+              cpu: 20m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi

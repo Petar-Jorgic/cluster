@@ -8,6 +8,7 @@ resources:
   - sonarr.yaml
   - radarr.yaml
   - readarr.yaml
+  - bindery.yaml
   - bazarr.yaml
   - jellyseerr.yaml
   - services.yaml

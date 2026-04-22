@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bindery
+  labels:
+    app: bindery
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: bindery
+  template:
+    metadata:
+      labels:
+        app: bindery
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: pj
+      containers:
+        - name: bindery
+          image: ghcr.io/vavallee/bindery:latest
+          ports:
+            - containerPort: 8787
+          env:
+            - name: TZ
+              value: "Europe/Berlin"
+            - name: BINDERY_PORT
+              value: "8787"
+            - name: BINDERY_DATA_DIR
+              value: "/config"
+            - name: BINDERY_DB_PATH
+              value: "/config/bindery.db"
+            - name: BINDERY_DOWNLOAD_DIR
+              value: "/downloads"
+            - name: BINDERY_LIBRARY_DIR
+              value: "/books"
+            - name: BINDERY_AUDIOBOOK_DIR
+              value: "/audiobooks"
+          volumeMounts:
+            - name: config
+              mountPath: /config
+              subPath: bindery
+            - name: nas
+              mountPath: /audiobooks
+              subPath: audiobookshelf/audiobooks
+            - name: nas
+              mountPath: /books
+              subPath: readarr/books
+            - name: nas
+              mountPath: /downloads
+              subPath: arr-stack/downloads/torrents
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: arr-config-pvc
+        - name: nas
+          persistentVolumeClaim:
+            claimName: arr-nas-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bindery
+  labels:
+    app: bindery
+spec:
+  clusterIP: 10.43.100.30
+  selector:
+    app: bindery
+  ports:
+    - port: 8787
+      targetPort: 8787
+      name: http

@@ -115,6 +115,27 @@ spec:
                 name: readarr
                 port:
                   number: 8787
+    # Bindery (modern Readarr replacement)
+    - host: bindery.lan
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: bindery
+                port:
+                  number: 8787
+    - host: bindery.pj-home-lab.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: bindery
+                port:
+                  number: 8787
     # qBittorrent (original UI)
     - host: qbittorrent.lan
       http:

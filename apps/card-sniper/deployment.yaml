@@ -30,6 +30,10 @@ spec:
               value: /data/card-sniper.db
             - name: FLARESOLVERR_URL
               value: http://flaresolverr.flaresolverr.svc:8191
+            - name: CARD_SNIPER_FIX_IMAGES
+              value: "1"
+            - name: CARD_SNIPER_FIX_VARIANT_IMAGES
+              value: "1"
           envFrom:
             - secretRef:
                 name: card-sniper-env

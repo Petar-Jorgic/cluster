@@ -36,6 +36,8 @@ spec:
             # final report shows real_cm/priced/imaged ≥ 90% of total.
             - name: CARD_SNIPER_AUTO_REBUILD
               value: "1"
+            - name: REBUILD_CONCURRENCY
+              value: "3"
           envFrom:
             - secretRef:
                 name: card-sniper-env

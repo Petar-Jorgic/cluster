@@ -35,11 +35,18 @@ spec:
               value: "http://flaresolverr-1.flaresolverr.svc:8191,http://flaresolverr-2.flaresolverr.svc:8191,http://flaresolverr-3.flaresolverr.svc:8191,http://flaresolverr-4.flaresolverr.svc:8191"
             - name: FLARESOLVERR_URL
               value: http://flaresolverr.flaresolverr.svc:8191
-            # CM scrape now egresses through the VPS SOCKS5 proxy (clean Swiss
-            # residential-grade IP). Set AUTO_REBUILD=1 to let the lifespan
-            # resume the rebuild from cm_scrape_queue when the queue still has
-            # pending rows; turn off after the final phase-7 report is clean.
+            # AUTO_REBUILD is OFF after the 2026-04-27 phase-7 report
+            # (2064 OP cards, 100% with real CM URL). Leaving it on means
+            # every pod restart enumerates + scrapes + cleans up — phase 6
+            # would then delete OPTCG-resynced orphans on every cycle.
+            # Manual rebuild trigger remains available via /admin/rebuild-onepiece/start.
             - name: CARD_SNIPER_AUTO_REBUILD
+              value: "0"
+            # SYNC_NOW=1 triggers a one-shot OPTCG catalog sync on next pod
+            # startup to repopulate the cards table with OPTCG-only entries
+            # (search-only, no CM listing) and fill card_color. Revert to 0
+            # after sync completes (~10min) so subsequent restarts skip it.
+            - name: CARD_SNIPER_SYNC_NOW
               value: "1"
             # 4 parallel FlareSolverr sessions sharing one VPS exit IP. Conservative
             # delays since all 4 workers come from the same IP — bumped from 0.5/1.5

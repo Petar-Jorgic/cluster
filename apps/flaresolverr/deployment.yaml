@@ -1,7 +1,9 @@
 # 4 independent FlareSolverr+Tor pods so card-sniper rebuild workers can hit
 # Cardmarket from 4 different Tor exit IPs in parallel without triggering
-# CF rate-limit. Each pod has its own ephemeral Tor data dir, so circuits and
-# exit IPs differ across pods. Workers in card-sniper round-robin between the
+# CF rate-limit. Each pod has its own ephemeral Tor data dir AND a per-pod
+# torrc (mounted from a ConfigMap) that pins ExitNodes to a different country
+# pool — without the country pin Tor's high-bandwidth-preference makes 2-3
+# pods share the same exit IP. Workers in card-sniper round-robin between the
 # 4 services and stick a session_id to a single FlareSolverr instance.
 ---
 apiVersion: apps/v1
@@ -29,12 +31,20 @@ spec:
     spec:
       nodeSelector:
         kubernetes.io/hostname: pj
+      volumes:
+        - name: torrc
+          configMap:
+            name: torrc-1
       containers:
         - name: tor
           image: osminogin/tor-simple:latest
           ports:
             - name: socks
               containerPort: 9050
+          volumeMounts:
+            - name: torrc
+              mountPath: /etc/tor/torrc
+              subPath: torrc
           resources:
             requests:
               cpu: 50m
@@ -87,12 +97,20 @@ spec:
     spec:
       nodeSelector:
         kubernetes.io/hostname: pj
+      volumes:
+        - name: torrc
+          configMap:
+            name: torrc-2
       containers:
         - name: tor
           image: osminogin/tor-simple:latest
           ports:
             - name: socks
               containerPort: 9050
+          volumeMounts:
+            - name: torrc
+              mountPath: /etc/tor/torrc
+              subPath: torrc
           resources:
             requests:
               cpu: 50m
@@ -145,12 +163,20 @@ spec:
     spec:
       nodeSelector:
         kubernetes.io/hostname: pj
+      volumes:
+        - name: torrc
+          configMap:
+            name: torrc-3
       containers:
         - name: tor
           image: osminogin/tor-simple:latest
           ports:
             - name: socks
               containerPort: 9050
+          volumeMounts:
+            - name: torrc
+              mountPath: /etc/tor/torrc
+              subPath: torrc
           resources:
             requests:
               cpu: 50m
@@ -203,12 +229,20 @@ spec:
     spec:
       nodeSelector:
         kubernetes.io/hostname: pj
+      volumes:
+        - name: torrc
+          configMap:
+            name: torrc-4
       containers:
         - name: tor
           image: osminogin/tor-simple:latest
           ports:
             - name: socks
               containerPort: 9050
+          volumeMounts:
+            - name: torrc
+              mountPath: /etc/tor/torrc
+              subPath: torrc
           resources:
             requests:
               cpu: 50m

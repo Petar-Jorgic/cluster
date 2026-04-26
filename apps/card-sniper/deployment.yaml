@@ -35,14 +35,14 @@ spec:
               value: "http://flaresolverr-1.flaresolverr.svc:8191,http://flaresolverr-2.flaresolverr.svc:8191,http://flaresolverr-3.flaresolverr.svc:8191,http://flaresolverr-4.flaresolverr.svc:8191"
             - name: FLARESOLVERR_URL
               value: http://flaresolverr.flaresolverr.svc:8191
-            # One-shot full Cardmarket rebuild: wipe cm_scrape_queue then bounce
-            # the pod. After the rebuild finishes, queue stays full of 'done'
-            # rows and subsequent restarts are no-ops. Remove this env once the
-            # final report shows real_cm/priced/imaged ≥ 90% of total.
+            # AUTO_REBUILD off until we have a CF-clean egress (planned: VPS
+            # SOCKS5 proxy). Tor exits are categorically blocked by Cardmarket's
+            # Cloudflare so a rebuild via Tor can't complete; setting this to 1
+            # without a clean egress just burns retries until URLs hit 'dead'.
             - name: CARD_SNIPER_AUTO_REBUILD
-              value: "1"
+              value: "0"
             - name: REBUILD_CONCURRENCY
-              value: "4"
+              value: "1"
           envFrom:
             - secretRef:
                 name: card-sniper-env

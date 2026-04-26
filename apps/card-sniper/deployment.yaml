@@ -42,12 +42,12 @@ spec:
             # Manual rebuild trigger remains available via /admin/rebuild-onepiece/start.
             - name: CARD_SNIPER_AUTO_REBUILD
               value: "0"
-            # SYNC_NOW=1 triggers a one-shot OPTCG catalog sync on next pod
-            # startup to repopulate the cards table with OPTCG-only entries
-            # (search-only, no CM listing) and fill card_color. Revert to 0
-            # after sync completes (~10min) so subsequent restarts skip it.
+            # SYNC_NOW one-shot completed 2026-04-27 (5663 OP cards in DB,
+            # 3671 with card_color). Reverted to 0 so subsequent restarts
+            # skip the catalog sync; the daily APScheduler job already
+            # keeps the OPTCG catalog up-to-date.
             - name: CARD_SNIPER_SYNC_NOW
-              value: "1"
+              value: "0"
             # 4 parallel FlareSolverr sessions sharing one VPS exit IP. Conservative
             # delays since all 4 workers come from the same IP — bumped from 0.5/1.5
             # to 1.5/3.0 to keep total req/min from VPS under CF's per-IP threshold.

@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: soulsync-config
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: soulsync
+    app.kubernetes.io/part-of: soulsync
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: soulsync-data
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: soulsync
+    app.kubernetes.io/part-of: soulsync
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi

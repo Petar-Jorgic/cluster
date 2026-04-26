@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: soulsync
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: soulsync
+    app.kubernetes.io/part-of: soulsync
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/managed-by: kustomize
+      app.kubernetes.io/name: soulsync
+      app.kubernetes.io/part-of: soulsync
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/managed-by: kustomize
+        app.kubernetes.io/name: soulsync
+        app.kubernetes.io/part-of: soulsync
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: pj
+      containers:
+        - name: soulsync
+          image: boulderbadgedad/soulsync:2.4.0
+          env:
+            - name: TZ
+              value: "Europe/Berlin"
+          ports:
+            - name: http
+              containerPort: 8008
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 1000m
+              memory: 512Mi
+          volumeMounts:
+            - name: config
+              mountPath: /app/config
+            - name: data
+              mountPath: /app/data
+            - name: media
+              mountPath: /app/Transfer
+              subPath: arr/Plex/Music
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: soulsync-config
+        - name: data
+          persistentVolumeClaim:
+            claimName: soulsync-data
+        - name: media
+          persistentVolumeClaim:
+            claimName: soulsync-media

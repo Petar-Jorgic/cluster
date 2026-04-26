@@ -35,14 +35,21 @@ spec:
               value: "http://flaresolverr-1.flaresolverr.svc:8191,http://flaresolverr-2.flaresolverr.svc:8191,http://flaresolverr-3.flaresolverr.svc:8191,http://flaresolverr-4.flaresolverr.svc:8191"
             - name: FLARESOLVERR_URL
               value: http://flaresolverr.flaresolverr.svc:8191
-            # AUTO_REBUILD off until we have a CF-clean egress (planned: VPS
-            # SOCKS5 proxy). Tor exits are categorically blocked by Cardmarket's
-            # Cloudflare so a rebuild via Tor can't complete; setting this to 1
-            # without a clean egress just burns retries until URLs hit 'dead'.
+            # CM scrape now egresses through the VPS SOCKS5 proxy (clean Swiss
+            # residential-grade IP). Set AUTO_REBUILD=1 to let the lifespan
+            # resume the rebuild from cm_scrape_queue when the queue still has
+            # pending rows; turn off after the final phase-7 report is clean.
             - name: CARD_SNIPER_AUTO_REBUILD
-              value: "0"
-            - name: REBUILD_CONCURRENCY
               value: "1"
+            # 4 parallel FlareSolverr sessions sharing one VPS exit IP. Conservative
+            # delays since all 4 workers come from the same IP — bumped from 0.5/1.5
+            # to 1.5/3.0 to keep total req/min from VPS under CF's per-IP threshold.
+            - name: REBUILD_CONCURRENCY
+              value: "4"
+            - name: REBUILD_MIN_DELAY
+              value: "1.5"
+            - name: REBUILD_MAX_DELAY
+              value: "3.0"
           envFrom:
             - secretRef:
                 name: card-sniper-env

@@ -3,5 +3,6 @@ kind: Kustomization
 namespace: flaresolverr
 resources:
   - torrc-configmaps.yaml
+  - proxy-secret.yaml
   - deployment.yaml
   - service.yaml

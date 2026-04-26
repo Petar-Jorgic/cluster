@@ -1,10 +1,12 @@
-# 4 independent FlareSolverr+Tor pods so card-sniper rebuild workers can hit
-# Cardmarket from 4 different Tor exit IPs in parallel without triggering
-# CF rate-limit. Each pod has its own ephemeral Tor data dir AND a per-pod
-# torrc (mounted from a ConfigMap) that pins ExitNodes to a different country
-# pool — without the country pin Tor's high-bandwidth-preference makes 2-3
-# pods share the same exit IP. Workers in card-sniper round-robin between the
-# 4 services and stick a session_id to a single FlareSolverr instance.
+# 4 independent FlareSolverr pods. PROXY_URL points at the VPS SOCKS5 proxy
+# (sealed in proxy-secret.yaml) — using Cardmarket-clean residential-grade
+# Swiss VPS IP instead of Tor exits, since CF blocks all known Tor exits
+# categorically when scraping CM. The Tor sidecar containers are kept as a
+# fallback (FlareSolverr can swap PROXY_URL via env override) but normally
+# unused. The 4 pods give 4 parallel FlareSolverr Chrome sessions, each
+# holding its own cf_clearance cookie, sharing one outbound IP.
+# Workers in card-sniper round-robin session_ids across the 4 services so
+# each session sticks to one FlareSolverr instance (sessions are per-instance).
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -63,7 +65,10 @@ spec:
             - name: LOG_LEVEL
               value: "info"
             - name: PROXY_URL
-              value: "socks5://localhost:9050"
+              valueFrom:
+                secretKeyRef:
+                  name: socks5-proxy
+                  key: PROXY_URL
           resources:
             requests:
               cpu: 100m
@@ -129,7 +134,10 @@ spec:
             - name: LOG_LEVEL
               value: "info"
             - name: PROXY_URL
-              value: "socks5://localhost:9050"
+              valueFrom:
+                secretKeyRef:
+                  name: socks5-proxy
+                  key: PROXY_URL
           resources:
             requests:
               cpu: 100m
@@ -195,7 +203,10 @@ spec:
             - name: LOG_LEVEL
               value: "info"
             - name: PROXY_URL
-              value: "socks5://localhost:9050"
+              valueFrom:
+                secretKeyRef:
+                  name: socks5-proxy
+                  key: PROXY_URL
           resources:
             requests:
               cpu: 100m
@@ -261,7 +272,10 @@ spec:
             - name: LOG_LEVEL
               value: "info"
             - name: PROXY_URL
-              value: "socks5://localhost:9050"
+              valueFrom:
+                secretKeyRef:
+                  name: socks5-proxy
+                  key: PROXY_URL
           resources:
             requests:
               cpu: 100m

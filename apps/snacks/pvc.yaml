@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: snacks-config
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: snacks
+    app.kubernetes.io/part-of: snacks
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi

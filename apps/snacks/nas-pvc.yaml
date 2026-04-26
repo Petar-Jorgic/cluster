@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: snacks-nas-pv
+  labels:
+    app.kubernetes.io/part-of: snacks
+spec:
+  capacity:
+    storage: 500Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-snacks
+  nfs:
+    server: 192.168.1.162
+    path: /volume1/docker
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: snacks-media
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/part-of: snacks
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs-snacks
+  resources:
+    requests:
+      storage: 500Gi
+  volumeName: snacks-nas-pv

@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: snacks
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: snacks
+    app.kubernetes.io/part-of: snacks
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: snacks
+    app.kubernetes.io/part-of: snacks
+  ports:
+    - name: http
+      port: 80
+      targetPort: 6767
+      protocol: TCP

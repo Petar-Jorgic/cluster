@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: snacks
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: snacks
+    app.kubernetes.io/part-of: snacks
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/managed-by: kustomize
+      app.kubernetes.io/name: snacks
+      app.kubernetes.io/part-of: snacks
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/managed-by: kustomize
+        app.kubernetes.io/name: snacks
+        app.kubernetes.io/part-of: snacks
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: pj
+      securityContext:
+        supplementalGroups:
+          - 44
+          - 109
+          - 992
+      containers:
+        - name: snacks
+          image: derekshreds/snacks-docker:2.5.1
+          env:
+            - name: TZ
+              value: "Europe/Berlin"
+            - name: ASPNETCORE_ENVIRONMENT
+              value: "Production"
+            - name: SNACKS_WORK_DIR
+              value: "/app/work"
+          ports:
+            - name: http
+              containerPort: 6767
+          securityContext:
+            privileged: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 4000m
+              memory: 2Gi
+          volumeMounts:
+            - name: media
+              mountPath: /app/work/uploads
+            - name: config
+              mountPath: /app/work/config
+            - name: logs
+              mountPath: /app/work/logs
+            - name: dri
+              mountPath: /dev/dri
+      volumes:
+        - name: media
+          persistentVolumeClaim:
+            claimName: snacks-media
+        - name: config
+          persistentVolumeClaim:
+            claimName: snacks-config
+        - name: logs
+          emptyDir: {}
+        - name: dri
+          hostPath:
+            path: /dev/dri

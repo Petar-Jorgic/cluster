@@ -28,6 +28,11 @@ spec:
           env:
             - name: DATABASE_PATH
               value: /data/card-sniper.db
+            # 4 FlareSolverr+Tor pods, each on its own exit IP. Workers
+            # round-robin across them so CF only sees ~1/4 of the request
+            # rate per source IP.
+            - name: FLARESOLVERR_URLS
+              value: "http://flaresolverr-1.flaresolverr.svc:8191,http://flaresolverr-2.flaresolverr.svc:8191,http://flaresolverr-3.flaresolverr.svc:8191,http://flaresolverr-4.flaresolverr.svc:8191"
             - name: FLARESOLVERR_URL
               value: http://flaresolverr.flaresolverr.svc:8191
             # One-shot full Cardmarket rebuild: wipe cm_scrape_queue then bounce
@@ -37,7 +42,7 @@ spec:
             - name: CARD_SNIPER_AUTO_REBUILD
               value: "1"
             - name: REBUILD_CONCURRENCY
-              value: "1"
+              value: "4"
           envFrom:
             - secretRef:
                 name: card-sniper-env

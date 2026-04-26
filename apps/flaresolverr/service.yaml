@@ -1,17 +1,97 @@
+# One Service per FlareSolverr deployment so card-sniper workers can pin a
+# session_id to a specific FlareSolverr instance (sessions are per-instance).
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flaresolverr-1
+  labels:
+    app.kubernetes.io/name: flaresolverr
+    app.kubernetes.io/instance: flaresolverr-1
+    app.kubernetes.io/part-of: flaresolverr
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: flaresolverr
+    app.kubernetes.io/instance: flaresolverr-1
+  ports:
+    - name: http
+      port: 8191
+      targetPort: 8191
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flaresolverr-2
+  labels:
+    app.kubernetes.io/name: flaresolverr
+    app.kubernetes.io/instance: flaresolverr-2
+    app.kubernetes.io/part-of: flaresolverr
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: flaresolverr
+    app.kubernetes.io/instance: flaresolverr-2
+  ports:
+    - name: http
+      port: 8191
+      targetPort: 8191
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flaresolverr-3
+  labels:
+    app.kubernetes.io/name: flaresolverr
+    app.kubernetes.io/instance: flaresolverr-3
+    app.kubernetes.io/part-of: flaresolverr
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: flaresolverr
+    app.kubernetes.io/instance: flaresolverr-3
+  ports:
+    - name: http
+      port: 8191
+      targetPort: 8191
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flaresolverr-4
+  labels:
+    app.kubernetes.io/name: flaresolverr
+    app.kubernetes.io/instance: flaresolverr-4
+    app.kubernetes.io/part-of: flaresolverr
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: flaresolverr
+    app.kubernetes.io/instance: flaresolverr-4
+  ports:
+    - name: http
+      port: 8191
+      targetPort: 8191
+      protocol: TCP
+---
+# Backwards-compat: anything still pointing at "flaresolverr.flaresolverr.svc"
+# (e.g. arr-stack didn't, but card-sniper might during rolling updates) gets
+# round-robined across all 4 instances. Sessions won't stick on this Service —
+# only use it for one-shot requests, never for session-bound flows.
 apiVersion: v1
 kind: Service
 metadata:
   name: flaresolverr
   labels:
-    app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: flaresolverr
     app.kubernetes.io/part-of: flaresolverr
 spec:
   type: ClusterIP
   selector:
-    app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: flaresolverr
-    app.kubernetes.io/part-of: flaresolverr
   ports:
     - name: http
       port: 8191

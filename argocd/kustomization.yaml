@@ -35,6 +35,4 @@ resources:
   - recyclarr.yaml
   - reisenotiz.yaml
   - snacks.yaml
-  - note-mark.yaml
   - soulsync.yaml
-  - slskd.yaml

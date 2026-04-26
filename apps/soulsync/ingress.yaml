@@ -20,3 +20,13 @@ spec:
                 name: soulsync
                 port:
                   number: 80
+    - host: soulsync.pj-home-lab.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: soulsync
+                port:
+                  number: 80

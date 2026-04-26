@@ -8,6 +8,7 @@ metadata:
     app.kubernetes.io/part-of: soulsync
 spec:
   type: ClusterIP
+  clusterIP: 10.43.77.77
   selector:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: soulsync

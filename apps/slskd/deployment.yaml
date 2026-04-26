@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: slskd
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: slskd
+    app.kubernetes.io/part-of: slskd
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/managed-by: kustomize
+      app.kubernetes.io/name: slskd
+      app.kubernetes.io/part-of: slskd
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/managed-by: kustomize
+        app.kubernetes.io/name: slskd
+        app.kubernetes.io/part-of: slskd
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: pj
+      containers:
+        - name: slskd
+          image: slskd/slskd:0.22.5
+          env:
+            - name: TZ
+              value: "Europe/Berlin"
+            - name: SLSKD_REMOTE_CONFIGURATION
+              value: "true"
+          ports:
+            - name: http
+              containerPort: 5030
+            - name: slsk
+              containerPort: 50300
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 1000m
+              memory: 512Mi
+          volumeMounts:
+            - name: config
+              mountPath: /app
+            - name: media
+              mountPath: /data/downloads
+              subPath: arr/Plex/Music/_incoming
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: slskd-config
+        - name: media
+          persistentVolumeClaim:
+            claimName: slskd-media

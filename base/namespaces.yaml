@@ -102,3 +102,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: soulsync
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: slskd

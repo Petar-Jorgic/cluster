@@ -30,6 +30,12 @@ spec:
               value: /data/card-sniper.db
             - name: FLARESOLVERR_URL
               value: http://flaresolverr.flaresolverr.svc:8191
+            # One-shot full Cardmarket rebuild: wipe cm_scrape_queue then bounce
+            # the pod. After the rebuild finishes, queue stays full of 'done'
+            # rows and subsequent restarts are no-ops. Remove this env once the
+            # final report shows real_cm/priced/imaged ≥ 90% of total.
+            - name: CARD_SNIPER_AUTO_REBUILD
+              value: "1"
           envFrom:
             - secretRef:
                 name: card-sniper-env

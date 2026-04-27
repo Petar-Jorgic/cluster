@@ -1,10 +1,12 @@
-# 4 independent FlareSolverr pods. PROXY_URL points at the VPS SOCKS5 proxy
-# (sealed in proxy-secret.yaml) — using Cardmarket-clean residential-grade
-# Swiss VPS IP instead of Tor exits, since CF blocks all known Tor exits
-# categorically when scraping CM. The Tor sidecar containers are kept as a
-# fallback (FlareSolverr can swap PROXY_URL via env override) but normally
-# unused. The 4 pods give 4 parallel FlareSolverr Chrome sessions, each
-# holding its own cf_clearance cookie, sharing one outbound IP.
+# 4 independent FlareSolverr pods. Each has a Tor sidecar at localhost:9050
+# (its own torrc-N ConfigMap). PROXY_URL routes Chromium through Tor, since
+# the previous VPS-residential proxy (sealed in proxy-secret.yaml, kept for
+# reference) is CF-banned for /Products/Singles/<product> URLs and CF rate-
+# limits it on /Search after ~150 requests. Tor circuits churn through fresh
+# exit IPs which CF accepts per-circuit, and FlareSolverr sessions can stay
+# persistent because every request resolves through the same per-pod Tor
+# socket. The 4 pods give 4 parallel Chrome sessions, each holding its own
+# cf_clearance cookie tied to whatever Tor exit it ended up on.
 # Workers in card-sniper round-robin session_ids across the 4 services so
 # each session sticks to one FlareSolverr instance (sessions are per-instance).
 ---
@@ -64,18 +66,26 @@ spec:
               value: "Europe/Berlin"
             - name: LOG_LEVEL
               value: "info"
+            # PROXY_URL points at the per-pod Tor sidecar (localhost:9050).
+            # The earlier VPS proxy (Swiss residential IP) is CF-banned for
+            # /Products/Singles/<product> URLs and was rate-limiting at ~150
+            # requests on /Search. Tor exits churn through fresh IPs which
+            # CF accepts on a per-circuit basis. Sessions can stay persistent
+            # because every request uses the same Tor sidecar; chromium memory
+            # is reclaimed cleanly between session-bound requests.
             - name: PROXY_URL
-              valueFrom:
-                secretKeyRef:
-                  name: socks5-proxy
-                  key: PROXY_URL
+              value: "socks5://localhost:9050"
           resources:
             requests:
               cpu: 100m
-              memory: 384Mi
+              # 1.5Gi limit — fresh-browser-per-request via Tor briefly
+              # holds ~600MB while the previous browser is still releasing.
+              # 768Mi was OOMKilling on every other request, causing >50%
+              # ConnectError failure rate.
+              memory: 768Mi
             limits:
               cpu: "1"
-              memory: 768Mi
+              memory: 1.5Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -133,18 +143,26 @@ spec:
               value: "Europe/Berlin"
             - name: LOG_LEVEL
               value: "info"
+            # PROXY_URL points at the per-pod Tor sidecar (localhost:9050).
+            # The earlier VPS proxy (Swiss residential IP) is CF-banned for
+            # /Products/Singles/<product> URLs and was rate-limiting at ~150
+            # requests on /Search. Tor exits churn through fresh IPs which
+            # CF accepts on a per-circuit basis. Sessions can stay persistent
+            # because every request uses the same Tor sidecar; chromium memory
+            # is reclaimed cleanly between session-bound requests.
             - name: PROXY_URL
-              valueFrom:
-                secretKeyRef:
-                  name: socks5-proxy
-                  key: PROXY_URL
+              value: "socks5://localhost:9050"
           resources:
             requests:
               cpu: 100m
-              memory: 384Mi
+              # 1.5Gi limit — fresh-browser-per-request via Tor briefly
+              # holds ~600MB while the previous browser is still releasing.
+              # 768Mi was OOMKilling on every other request, causing >50%
+              # ConnectError failure rate.
+              memory: 768Mi
             limits:
               cpu: "1"
-              memory: 768Mi
+              memory: 1.5Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -202,18 +220,26 @@ spec:
               value: "Europe/Berlin"
             - name: LOG_LEVEL
               value: "info"
+            # PROXY_URL points at the per-pod Tor sidecar (localhost:9050).
+            # The earlier VPS proxy (Swiss residential IP) is CF-banned for
+            # /Products/Singles/<product> URLs and was rate-limiting at ~150
+            # requests on /Search. Tor exits churn through fresh IPs which
+            # CF accepts on a per-circuit basis. Sessions can stay persistent
+            # because every request uses the same Tor sidecar; chromium memory
+            # is reclaimed cleanly between session-bound requests.
             - name: PROXY_URL
-              valueFrom:
-                secretKeyRef:
-                  name: socks5-proxy
-                  key: PROXY_URL
+              value: "socks5://localhost:9050"
           resources:
             requests:
               cpu: 100m
-              memory: 384Mi
+              # 1.5Gi limit — fresh-browser-per-request via Tor briefly
+              # holds ~600MB while the previous browser is still releasing.
+              # 768Mi was OOMKilling on every other request, causing >50%
+              # ConnectError failure rate.
+              memory: 768Mi
             limits:
               cpu: "1"
-              memory: 768Mi
+              memory: 1.5Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -271,15 +297,23 @@ spec:
               value: "Europe/Berlin"
             - name: LOG_LEVEL
               value: "info"
+            # PROXY_URL points at the per-pod Tor sidecar (localhost:9050).
+            # The earlier VPS proxy (Swiss residential IP) is CF-banned for
+            # /Products/Singles/<product> URLs and was rate-limiting at ~150
+            # requests on /Search. Tor exits churn through fresh IPs which
+            # CF accepts on a per-circuit basis. Sessions can stay persistent
+            # because every request uses the same Tor sidecar; chromium memory
+            # is reclaimed cleanly between session-bound requests.
             - name: PROXY_URL
-              valueFrom:
-                secretKeyRef:
-                  name: socks5-proxy
-                  key: PROXY_URL
+              value: "socks5://localhost:9050"
           resources:
             requests:
               cpu: 100m
-              memory: 384Mi
+              # 1.5Gi limit — fresh-browser-per-request via Tor briefly
+              # holds ~600MB while the previous browser is still releasing.
+              # 768Mi was OOMKilling on every other request, causing >50%
+              # ConnectError failure rate.
+              memory: 768Mi
             limits:
               cpu: "1"
-              memory: 768Mi
+              memory: 1.5Gi

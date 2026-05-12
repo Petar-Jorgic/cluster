@@ -36,6 +36,9 @@ spec:
             - name: data
               mountPath: /app/data
               subPath: data
+            - name: data
+              mountPath: /home/aniworld/.aniworld
+              subPath: aniworld-home
           resources:
             requests:
               cpu: 50m

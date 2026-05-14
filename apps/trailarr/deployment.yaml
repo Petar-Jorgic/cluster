@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trailarr
+  labels:
+    app: trailarr
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: trailarr
+  template:
+    metadata:
+      labels:
+        app: trailarr
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: pj
+      containers:
+        - name: trailarr
+          image: ghcr.io/nandyalu/trailarr:latest
+          ports:
+            - containerPort: 7889
+          env:
+            - name: TZ
+              value: Europe/Berlin
+            - name: PUID
+              value: "0"
+            - name: PGID
+              value: "0"
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            # Media paths mounted identically to radarr/sonarr so
+            # Trailarr writes <title>-trailer.* into the right folders
+            - name: nas
+              mountPath: /movies
+              subPath: arr/Plex/film
+            - name: nas
+              mountPath: /tv
+              subPath: arr/Plex/TV
+            - name: nas
+              mountPath: /anime
+              subPath: arr/Plex/Anime/Series
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: trailarr-config
+        - name: nas
+          persistentVolumeClaim:
+            claimName: trailarr-nas-pvc

@@ -1,0 +1,41 @@
+# Config storage for Trailarr (local-path, app database + settings)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: trailarr-config
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 2Gi
+---
+# NAS media access (same NFS root as arr-stack, mounted via subPaths)
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: trailarr-nas-pv
+spec:
+  capacity:
+    storage: 32Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-trailarr
+  nfs:
+    server: 192.168.1.162
+    path: /volume1/docker
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: trailarr-nas-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs-trailarr
+  resources:
+    requests:
+      storage: 32Ti
+  volumeName: trailarr-nas-pv

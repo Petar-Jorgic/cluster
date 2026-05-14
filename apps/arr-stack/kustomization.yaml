@@ -14,5 +14,4 @@ resources:
   - services.yaml
   - ingress.yaml
   - pvc.yaml
-  - qbitwebui.yaml
   # secrets.yaml - apply manually, don't commit to git!

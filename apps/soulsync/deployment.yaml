@@ -7,7 +7,10 @@ metadata:
     app.kubernetes.io/name: soulsync
     app.kubernetes.io/part-of: soulsync
 spec:
-  replicas: 1
+  # Deaktiviert 2026-05-25: SoulSync lädt nur über Soulseek (slskd), das ist nicht
+  # deployed. YouTube-Playlists werden stattdessen direkt via apps/ytmusic-sync
+  # (yt-dlp) in die /Music-Library gesynct. Reaktivieren: replicas auf 1.
+  replicas: 0
   strategy:
     type: Recreate
   selector:

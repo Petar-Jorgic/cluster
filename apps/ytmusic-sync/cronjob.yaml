@@ -1,0 +1,85 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ytmusic-sync-script
+  namespace: ytmusic-sync
+data:
+  sync.sh: |
+    #!/bin/sh
+    # Downloads the user's YouTube Music playlists to the Plex/Jellyfin music
+    # library as MP3 with embedded tags + cover. Incremental via download-archive:
+    # re-runs only fetch tracks not already downloaded.
+    set -u
+    echo "[ytmusic-sync] installing ffmpeg + latest yt-dlp..."
+    apk add --no-cache ffmpeg >/dev/null
+    pip install --no-cache-dir -U yt-dlp >/dev/null
+    yt-dlp --version
+
+    MUSIC=/music
+    ARCHIVE="$MUSIC/.ytdlp-archive.txt"
+    mkdir -p "$MUSIC"
+
+    sync_pl() {
+      name="$1"; url="$2"
+      echo "[ytmusic-sync] >>> syncing playlist '$name'"
+      yt-dlp --ignore-errors --no-overwrites \
+        --download-archive "$ARCHIVE" \
+        --extract-audio --audio-format mp3 --audio-quality 0 \
+        --embed-metadata --embed-thumbnail \
+        --parse-metadata "playlist_title:%(meta_album)s" \
+        --sleep-interval 3 --max-sleep-interval 8 \
+        --output "$MUSIC/$name/%(title)s [%(id)s].%(ext)s" \
+        "$url" || echo "[ytmusic-sync] playlist '$name' finished with some errors (continuing)"
+    }
+
+    # Playlists mirrored from SoulSync (mirrored_playlists table)
+    sync_pl "all"  "https://music.youtube.com/playlist?list=PLEs08sUqN0Gh70tl0uguptMJ2zbhCnFmI"
+    sync_pl "girl" "https://music.youtube.com/playlist?list=PLEs08sUqN0GgRB-Q2z31T6Vosll6eGDnD"
+
+    echo "[ytmusic-sync] done. mp3 files in library:"
+    find "$MUSIC" -type f -name '*.mp3' | wc -l
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ytmusic-sync
+  namespace: ytmusic-sync
+spec:
+  # Weekly re-sync (incremental). Manual run: kubectl -n ytmusic-sync create job ytmusic-sync-now --from=cronjob/ytmusic-sync
+  schedule: "0 5 * * 0"
+  timeZone: Europe/Berlin
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          restartPolicy: Never
+          nodeSelector:
+            kubernetes.io/hostname: pj
+          containers:
+            - name: ytmusic-sync
+              image: python:3.12-alpine
+              command: ["sh", "/scripts/sync.sh"]
+              volumeMounts:
+                - name: script
+                  mountPath: /scripts
+                - name: music
+                  mountPath: /music
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits:
+                  cpu: 2000m
+                  memory: 1Gi
+          volumes:
+            - name: script
+              configMap:
+                name: ytmusic-sync-script
+            - name: music
+              nfs:
+                server: 192.168.1.162
+                path: /volume1/docker/arr/Plex/Music

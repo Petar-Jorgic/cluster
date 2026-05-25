@@ -37,3 +37,4 @@ resources:
   - soulsync.yaml
   - trailarr.yaml
   - cluster-cleanup.yaml
+  - ytmusic-sync.yaml

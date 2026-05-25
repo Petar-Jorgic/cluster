@@ -3,10 +3,9 @@ kind: Kustomization
 
 namespace: jellyfin
 
+# Jellyfin runs on the NAS now (see README). Only routing + EPG cronjob remain here;
+# the Deployment + its PVCs/PV were removed (compute moved off-cluster).
 resources:
-  - pvc.yaml
-  - nas-pvc.yaml
-  - deployment.yaml
   - service.yaml
   - service-lb.yaml
   - ingress.yaml

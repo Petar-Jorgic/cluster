@@ -8,24 +8,27 @@ metadata:
     app.kubernetes.io/part-of: jellyfin
 spec:
   type: LoadBalancer
-  # No selector on purpose: Jellyfin now runs on the NAS (192.168.1.162:8096).
-  # Keeps the stable LAN VIP:8096 for apps, but forwards to the NAS via the Endpoints below.
+  # No selector: forwards to the Jellyfin server on the NAS via the EndpointSlice below.
   ports:
     - name: http
       port: 8096
       targetPort: 8096
       protocol: TCP
 ---
-apiVersion: v1
-kind: Endpoints
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
 metadata:
-  name: jellyfin-lb
+  name: jellyfin-lb-nas
   labels:
+    kubernetes.io/service-name: jellyfin-lb
     app.kubernetes.io/part-of: jellyfin
-subsets:
+addressType: IPv4
+endpoints:
   - addresses:
-      - ip: 192.168.1.162
-    ports:
-      - name: http
-        port: 8096
-        protocol: TCP
+      - 192.168.1.162
+    conditions:
+      ready: true
+ports:
+  - name: http
+    port: 8096
+    protocol: TCP

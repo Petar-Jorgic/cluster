@@ -1,0 +1,10 @@
+# Long-lived (non-expiring) ServiceAccount token for Headlamp login.
+# The token controller populates .data.token in-cluster; no secret is stored in git.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: headlamp-token
+  namespace: headlamp
+  annotations:
+    kubernetes.io/service-account.name: headlamp
+type: kubernetes.io/service-account-token

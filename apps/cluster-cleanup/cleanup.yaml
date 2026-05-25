@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cleanup
+  namespace: cluster-cleanup
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cluster-cleanup
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "delete"]
+  - apiGroups: ["apps"]
+    resources: ["replicasets"]
+    verbs: ["get", "list", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cluster-cleanup
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-cleanup
+subjects:
+  - kind: ServiceAccount
+    name: cleanup
+    namespace: cluster-cleanup
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cleanup
+  namespace: cluster-cleanup
+spec:
+  schedule: "0 4 * * *"
+  timeZone: "Europe/Berlin"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 300
+      template:
+        spec:
+          restartPolicy: Never
+          serviceAccountName: cleanup
+          containers:
+            - name: cleanup
+              image: rancher/kubectl:v1.34.4
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -u
+                  echo "== Completed (Succeeded) pods =="
+                  kubectl delete pods -A --field-selector=status.phase==Succeeded --ignore-not-found
+                  echo "== Failed pods =="
+                  kubectl delete pods -A --field-selector=status.phase==Failed --ignore-not-found
+                  echo "== empty ReplicaSets (0 desired replicas = old rollout history) =="
+                  kubectl get rs -A -o jsonpath='{range .items[?(@.spec.replicas==0)]}{.metadata.namespace} {.metadata.name}{"\n"}{end}' \
+                    | while read -r ns name; do
+                        [ -n "$ns" ] && kubectl delete rs -n "$ns" "$name" --ignore-not-found
+                      done
+                  echo "== cleanup done =="
+              resources:
+                requests:
+                  cpu: 20m
+                  memory: 32Mi
+                limits:
+                  cpu: 200m
+                  memory: 128Mi

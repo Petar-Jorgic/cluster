@@ -37,3 +37,4 @@ resources:
   - snacks.yaml
   - soulsync.yaml
   - trailarr.yaml
+  - cluster-cleanup.yaml

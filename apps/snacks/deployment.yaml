@@ -7,7 +7,10 @@ metadata:
     app.kubernetes.io/name: snacks
     app.kubernetes.io/part-of: snacks
 spec:
-  replicas: 1
+  # Deaktiviert (nicht gelöscht): kein Platzgewinn bei DeleteOriginalFile=false,
+  # CPU-Last/Strom auf der Control-Plane, kollidiert mit Hardlink/Seeding.
+  # Reaktivieren: replicas auf 1.
+  replicas: 0
   strategy:
     type: Recreate
   selector:

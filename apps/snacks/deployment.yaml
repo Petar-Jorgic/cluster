@@ -39,6 +39,10 @@ spec:
               value: "Production"
             - name: SNACKS_WORK_DIR
               value: "/app/work"
+            # pj hat eine AMD-GPU (Renoir) -> VAAPI braucht radeonsi, NICHT den
+            # Default iHD (Intel). Sonst scheitert vaInitialize und Jobs hängen auf "processing".
+            - name: LIBVA_DRIVER_NAME
+              value: "radeonsi"
           ports:
             - name: http
               containerPort: 6767

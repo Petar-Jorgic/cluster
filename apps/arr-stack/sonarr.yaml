@@ -19,6 +19,10 @@ spec:
       containers:
         - name: sonarr
           image: linuxserver/sonarr:latest
+          # Unify storage on ONE mount (/data = whole NAS export) and expose the
+          # legacy paths as symlinks into it, so existing DB paths resolve unchanged
+          # AND downloads+library share a mount -> Sonarr imports via hardlink (no copy).
+          command: ["/bin/sh","-c","rm -rf /tv /anime /downloads; ln -s /data/arr/Plex/TV /tv; ln -s /data/arr/Plex/Anime/Series /anime; ln -s /data/arr-stack/downloads/torrents /downloads; exec /init"]
           ports:
             - containerPort: 8989
           env:
@@ -33,14 +37,7 @@ spec:
               mountPath: /config
               subPath: sonarr
             - name: nas
-              mountPath: /tv
-              subPath: arr/Plex/TV
-            - name: nas
-              mountPath: /anime
-              subPath: arr/Plex/Anime/Series
-            - name: nas
-              mountPath: /downloads
-              subPath: arr-stack/downloads/torrents
+              mountPath: /data
           resources:
             requests:
               cpu: 100m

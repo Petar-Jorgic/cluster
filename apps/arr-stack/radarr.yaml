@@ -19,6 +19,10 @@ spec:
       containers:
         - name: radarr
           image: linuxserver/radarr:latest
+          # Unify storage on ONE mount (/data = whole NAS export) and expose the
+          # legacy paths as symlinks into it, so existing DB paths resolve unchanged
+          # AND downloads+library share a mount -> Radarr imports via hardlink (no copy).
+          command: ["/bin/sh","-c","rm -rf /movies /downloads; ln -s /data/arr/Plex/film /movies; ln -s /data/arr-stack/downloads/torrents /downloads; exec /init"]
           ports:
             - containerPort: 7878
           env:
@@ -33,11 +37,7 @@ spec:
               mountPath: /config
               subPath: radarr
             - name: nas
-              mountPath: /movies
-              subPath: arr/Plex/film
-            - name: nas
-              mountPath: /downloads
-              subPath: arr-stack/downloads/torrents
+              mountPath: /data
           resources:
             requests:
               cpu: 100m

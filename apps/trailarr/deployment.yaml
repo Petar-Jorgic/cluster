@@ -20,7 +20,9 @@ spec:
         kubernetes.io/hostname: pj
       containers:
         - name: trailarr
-          image: nandyalu/trailarr:latest
+          # Pinned (war :latest): ein OOM-Neustart zog v0.9.5, das einen Pflicht-
+          # Login einführte und den User aussperrte. Bewusst aktualisieren.
+          image: nandyalu/trailarr:0.9.5
           ports:
             - containerPort: 7889
           env:
@@ -47,10 +49,11 @@ spec:
           resources:
             requests:
               cpu: 100m
-              memory: 256Mi
+              memory: 512Mi
             limits:
               cpu: 1000m
-              memory: 1Gi
+              # Angehoben von 1Gi: Trailer-Batches sprengten das Limit -> OOMKilled.
+              memory: 2Gi
       volumes:
         - name: config
           persistentVolumeClaim:

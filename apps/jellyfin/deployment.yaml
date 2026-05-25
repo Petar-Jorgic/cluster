@@ -7,7 +7,9 @@ metadata:
     app.kubernetes.io/name: jellyfin
     app.kubernetes.io/part-of: jellyfin
 spec:
-  replicas: 1
+  # Jellyfin moved to the NAS Docker (192.168.1.162:8096). Pod scaled to 0 to free
+  # pj/GPU, but kept (with its config PVC) in case watch-history needs migrating.
+  replicas: 0
   strategy:
     type: Recreate
   selector:

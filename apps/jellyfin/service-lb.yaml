@@ -8,12 +8,24 @@ metadata:
     app.kubernetes.io/part-of: jellyfin
 spec:
   type: LoadBalancer
-  selector:
-    app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/name: jellyfin
-    app.kubernetes.io/part-of: jellyfin
+  # No selector on purpose: Jellyfin now runs on the NAS (192.168.1.162:8096).
+  # Keeps the stable LAN VIP:8096 for apps, but forwards to the NAS via the Endpoints below.
   ports:
     - name: http
       port: 8096
       targetPort: 8096
       protocol: TCP
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: jellyfin-lb
+  labels:
+    app.kubernetes.io/part-of: jellyfin
+subsets:
+  - addresses:
+      - ip: 192.168.1.162
+    ports:
+      - name: http
+        port: 8096
+        protocol: TCP

@@ -51,7 +51,10 @@ spec:
               cpu: 100m
               memory: 512Mi
             limits:
-              cpu: 1000m
+              # Heruntergesetzt von 1000m: ffmpeg-Trailer-Konvertierung lief auf
+              # vollem Kern -> pj-Lüfter dauerhaft an. 500m drosselt's auf einen
+              # halben Kern, Encodes dauern doppelt so lang, dafür ist's leise.
+              cpu: 500m
               # Angehoben von 1Gi: Trailer-Batches sprengten das Limit -> OOMKilled.
               memory: 2Gi
       volumes:

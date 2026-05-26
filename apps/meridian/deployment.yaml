@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: meridian
+  labels:
+    app: meridian
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: meridian
+  template:
+    metadata:
+      labels:
+        app: meridian
+    spec:
+      # local-path PVC binds to a node -> pin
+      nodeSelector:
+        kubernetes.io/hostname: pj
+      # Meridian image runs as non-root user "claude" (uid 1000) -> let group write the PVC
+      securityContext:
+        fsGroup: 1000
+      initContainers:
+        # Seeds the writable PVC with the OAuth credentials from the sealed secret
+        # on first start. Idempotent: skips if the file already exists (so the
+        # token Meridian REFRESHES into the PVC isn't overwritten on pod restarts).
+        - name: bootstrap-creds
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              mkdir -p /home/claude/.claude
+              if [ ! -f /home/claude/.claude/.credentials.json ]; then
+                cp /bootstrap/.credentials.json /home/claude/.claude/.credentials.json
+                chmod 600 /home/claude/.claude/.credentials.json
+                echo "bootstrapped credentials"
+              else
+                echo "credentials already present, skipping"
+              fi
+          volumeMounts:
+            - name: claude-config
+              mountPath: /home/claude/.claude
+            - name: bootstrap-creds
+              mountPath: /bootstrap
+              readOnly: true
+      containers:
+        - name: meridian
+          # Pinned. Selbst gebaut (localhost) weil GHCR nur bis 1.29.1 publiziert,
+          # was vor dem April-2026-Anthropic-Block ist und Token-Refresh kaputt.
+          # v1.42.1 hat den "auth-status durch resolver"-Fix der nach dem Block geht.
+          image: localhost/meridian:1.42.1
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3456
+              name: http
+          env:
+            - name: MERIDIAN_HOST
+              value: "0.0.0.0"   # default 127.0.0.1 -> nicht erreichbar im Cluster
+            - name: MERIDIAN_PORT
+              value: "3456"
+            - name: TZ
+              value: "Europe/Berlin"
+          volumeMounts:
+            - name: claude-config
+              mountPath: /home/claude/.claude
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+          livenessProbe:
+            tcpSocket:
+              port: 3456
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          readinessProbe:
+            tcpSocket:
+              port: 3456
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: claude-config
+          persistentVolumeClaim:
+            claimName: meridian-config
+        - name: bootstrap-creds
+          secret:
+            secretName: meridian-claude-creds
+            items:
+              - key: .credentials.json
+                path: .credentials.json

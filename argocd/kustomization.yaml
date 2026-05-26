@@ -38,3 +38,4 @@ resources:
   - trailarr.yaml
   - cluster-cleanup.yaml
   - ytmusic-sync.yaml
+  - meridian.yaml

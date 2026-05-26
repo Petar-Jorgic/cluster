@@ -1,0 +1,14 @@
+# Writable Claude config dir: holds the OAuth credentials so Meridian can REFRESH
+# the access token (sealed secret is read-only -> can't be the live mount). The
+# initContainer seeds it from the sealed secret on first start.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: meridian-config
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 100Mi

@@ -57,6 +57,13 @@ spec:
               value: "1.5"
             - name: REBUILD_MAX_DELAY
               value: "3.0"
+            # Claude-Aufrufe ueber den selbstgehosteten Meridian-Proxy schicken
+            # -> verbraucht das Max-Subscription-Quota statt API-Token-Billing.
+            # Anthropic-Python-SDK respektiert ANTHROPIC_BASE_URL automatisch,
+            # kein Code-Change in card-sniper noetig. Der API_KEY aus card-sniper-env
+            # wird von Meridian ignoriert (nutzt unsere OAuth-Subscription).
+            - name: ANTHROPIC_BASE_URL
+              value: "http://meridian.meridian.svc.cluster.local:3456"
           envFrom:
             - secretRef:
                 name: card-sniper-env

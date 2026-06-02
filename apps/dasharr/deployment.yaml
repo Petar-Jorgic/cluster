@@ -19,56 +19,24 @@ spec:
         app.kubernetes.io/name: dasharr
         app.kubernetes.io/part-of: dasharr
     spec:
+      # local-path config PVC -> pin to control plane.
       nodeSelector:
         kubernetes.io/hostname: pj
-      # The Rust backend panics (no retry) if the DB host isn't resolvable/up at
-      # boot, leaving nginx alive but the API dead. Wait for postgres first so a
-      # cold cluster start doesn't need a manual pod restart.
-      initContainers:
-        - name: wait-for-db
-          image: postgres:18.0
-          command:
-            - sh
-            - -c
-            - until pg_isready -h dasharr-db -p 5432 -U dasharr; do echo "waiting for dasharr-db..."; sleep 2; done
       containers:
         - name: dasharr
-          image: ghcr.io/arcadia-solutions/dasharr:latest
+          # Unified media/network dashboard (Plex/Sonarr/Radarr/qBittorrent/...).
+          # NOTE: name collides with ghcr.io/arcadia-solutions/dasharr (a private
+          # tracker ratio tool) — this is the dasharr.io one, the one we want.
+          image: schenanigans/dasharr:latest
           env:
-            - name: ENV
-              value: Docker
-            - name: RUST_LOG
-              value: "info,sqlx=info"
-            # nginx in the container proxies /api to the backend on this port.
-            - name: WEB_SERVER_PORT
-              value: "8080"
-            - name: POSTGRES_USER
-              value: dasharr
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: dasharr-secrets
-                  key: POSTGRES_PASSWORD
-            - name: POSTGRES_HOST
-              value: dasharr-db
-            - name: POSTGRES_PORT
-              value: "5432"
-            - name: POSTGRES_DB
-              value: dasharr
-            # Built from the vars above via k8s $(VAR) interpolation.
-            - name: DATABASE_URL
-              value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)"
-            # Login password for the Dasharr web UI / API (NOT an indexer key).
-            - name: API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: dasharr-secrets
-                  key: API_KEY
             - name: TZ
               value: Europe/Berlin
           ports:
             - name: http
-              containerPort: 80
+              containerPort: 3000
+          volumeMounts:
+            - name: config
+              mountPath: /app/config
           resources:
             requests:
               cpu: 25m
@@ -76,3 +44,7 @@ spec:
             limits:
               cpu: 500m
               memory: 256Mi
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: dasharr-config

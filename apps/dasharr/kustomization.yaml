@@ -4,8 +4,7 @@ kind: Kustomization
 namespace: dasharr
 
 resources:
-  - sealed-secret.yaml
-  - postgres.yaml
+  - pvc.yaml
   - deployment.yaml
   - service.yaml
   - ingress.yaml

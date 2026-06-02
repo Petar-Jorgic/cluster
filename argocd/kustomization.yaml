@@ -39,3 +39,4 @@ resources:
   - cluster-cleanup.yaml
   - ytmusic-sync.yaml
   - meridian.yaml
+  - dasharr.yaml

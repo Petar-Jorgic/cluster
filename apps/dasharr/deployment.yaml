@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dasharr
+  labels:
+    app.kubernetes.io/name: dasharr
+    app.kubernetes.io/part-of: dasharr
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: dasharr
+      app.kubernetes.io/part-of: dasharr
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: dasharr
+        app.kubernetes.io/part-of: dasharr
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: pj
+      containers:
+        - name: dasharr
+          image: ghcr.io/arcadia-solutions/dasharr:latest
+          env:
+            - name: ENV
+              value: Docker
+            - name: RUST_LOG
+              value: "info,sqlx=info"
+            # nginx in the container proxies /api to the backend on this port.
+            - name: WEB_SERVER_PORT
+              value: "8080"
+            - name: POSTGRES_USER
+              value: dasharr
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: dasharr-secrets
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_HOST
+              value: dasharr-db
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_DB
+              value: dasharr
+            # Built from the vars above via k8s $(VAR) interpolation.
+            - name: DATABASE_URL
+              value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)"
+            # Login password for the Dasharr web UI / API (NOT an indexer key).
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: dasharr-secrets
+                  key: API_KEY
+            - name: TZ
+              value: Europe/Berlin
+          ports:
+            - name: http
+              containerPort: 80
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi

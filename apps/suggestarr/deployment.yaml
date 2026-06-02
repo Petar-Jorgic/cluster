@@ -22,10 +22,15 @@ spec:
       # local-path config PVC -> pin to control plane.
       nodeSelector:
         kubernetes.io/hostname: pj
+      # The Service named "suggestarr" makes k8s inject SUGGESTARR_PORT=tcp://<ip>:5000,
+      # which the app feeds to uvicorn --port and crashes. Disable the legacy links.
+      enableServiceLinks: false
       containers:
         - name: suggestarr
           image: ciuse99/suggestarr:latest
           env:
+            - name: SUGGESTARR_PORT
+              value: "5000"
             - name: TZ
               value: Europe/Berlin
             - name: LOG_LEVEL

@@ -21,6 +21,16 @@ spec:
     spec:
       nodeSelector:
         kubernetes.io/hostname: pj
+      # The Rust backend panics (no retry) if the DB host isn't resolvable/up at
+      # boot, leaving nginx alive but the API dead. Wait for postgres first so a
+      # cold cluster start doesn't need a manual pod restart.
+      initContainers:
+        - name: wait-for-db
+          image: postgres:18.0
+          command:
+            - sh
+            - -c
+            - until pg_isready -h dasharr-db -p 5432 -U dasharr; do echo "waiting for dasharr-db..."; sleep 2; done
       containers:
         - name: dasharr
           image: ghcr.io/arcadia-solutions/dasharr:latest

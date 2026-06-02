@@ -1,0 +1,15 @@
+# Config storage for SuggestArr (local-path, holds config_files/*.yaml)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: suggestarr-config
+  labels:
+    app.kubernetes.io/name: suggestarr
+    app.kubernetes.io/part-of: suggestarr
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi

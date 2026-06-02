@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: suggestarr
+  labels:
+    app.kubernetes.io/name: suggestarr
+    app.kubernetes.io/part-of: suggestarr
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: suggestarr
+      app.kubernetes.io/part-of: suggestarr
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: suggestarr
+        app.kubernetes.io/part-of: suggestarr
+    spec:
+      # local-path config PVC -> pin to control plane.
+      nodeSelector:
+        kubernetes.io/hostname: pj
+      containers:
+        - name: suggestarr
+          image: ciuse99/suggestarr:latest
+          env:
+            - name: TZ
+              value: Europe/Berlin
+            - name: LOG_LEVEL
+              value: info
+          ports:
+            - name: http
+              containerPort: 5000
+          volumeMounts:
+            - name: config
+              mountPath: /app/config/config_files
+          resources:
+            requests:
+              cpu: 25m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: suggestarr-config

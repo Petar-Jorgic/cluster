@@ -7,7 +7,6 @@ metadata:
     app.kubernetes.io/part-of: matrix
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
-    traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
   ingressClassName: traefik
   rules:
@@ -41,7 +40,6 @@ metadata:
     app.kubernetes.io/part-of: matrix
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
-    traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
   ingressClassName: traefik
   rules:

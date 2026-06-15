@@ -1,0 +1,114 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: matrix-postgres-data
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: matrix-postgres
+    app.kubernetes.io/part-of: matrix
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: matrix-postgres-init
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: matrix-postgres
+    app.kubernetes.io/part-of: matrix
+data:
+  # Synapse requires a database with C collation; mautrix-whatsapp is fine with it too.
+  init.sql: |
+    CREATE DATABASE synapse ENCODING 'UTF8' LC_COLLATE 'C' LC_CTYPE 'C' TEMPLATE template0;
+    CREATE DATABASE mautrixwhatsapp;
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: matrix-postgres
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: matrix-postgres
+    app.kubernetes.io/part-of: matrix
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: matrix-postgres
+      app.kubernetes.io/part-of: matrix
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/managed-by: kustomize
+        app.kubernetes.io/name: matrix-postgres
+        app.kubernetes.io/part-of: matrix
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          env:
+            - name: POSTGRES_USER
+              value: matrix
+            - name: POSTGRES_DB
+              value: matrix
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: matrix-postgres
+                  key: POSTGRES_PASSWORD
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+            - name: TZ
+              value: Europe/Berlin
+          ports:
+            - name: postgres
+              containerPort: 5432
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+            - name: init
+              mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: matrix-postgres-data
+        - name: init
+          configMap:
+            name: matrix-postgres-init
+      nodeSelector:
+        kubernetes.io/hostname: pj
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: matrix-postgres
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: matrix-postgres
+    app.kubernetes.io/part-of: matrix
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: matrix-postgres
+    app.kubernetes.io/part-of: matrix
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+      protocol: TCP

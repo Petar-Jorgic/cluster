@@ -5,6 +5,7 @@ resources:
   - pvc.yaml
   - secret.yaml
   - ghcr-pull-secret.yaml
+  - s3-secret.yaml
   - deployment.yaml
   - service.yaml
   - ingress.yaml

@@ -41,3 +41,4 @@ resources:
   - meridian.yaml
   - dasharr.yaml
   - suggestarr.yaml
+  - minio.yaml

@@ -11,9 +11,7 @@ resources:
   - it-tools.yaml
   - arr-stack.yaml
   - ollama.yaml
-  - n8n.yaml
   - whisper.yaml
-  - mealie.yaml
   - flaresolverr.yaml
   - card-sniper.yaml
   - adguard.yaml
@@ -23,7 +21,6 @@ resources:
   - uptime-kuma.yaml
   - homarr.yaml
   - audiobookshelf.yaml
-  - paperless-ngx.yaml
   - loki.yaml
 
   - gotify.yaml
@@ -33,8 +30,6 @@ resources:
   - headlamp.yaml
   - speedtest-tracker.yaml
   - recyclarr.yaml
-  - snacks.yaml
-  - soulsync.yaml
   - trailarr.yaml
   - cluster-cleanup.yaml
   - ytmusic-sync.yaml

@@ -40,7 +40,7 @@ spec:
               subPath: litestream.yml
       containers:
         - name: card-sniper
-          image: ghcr.io/petar-jorgic/card-sniper:33ee3e21887613b316cf324404d0f1391a88f2e1
+          image: ghcr.io/petar-jorgic/card-sniper:f5cf443efc9888fe0dd8cff3bef166844c5f288b
           imagePullPolicy: Always
           ports:
             - containerPort: 8000

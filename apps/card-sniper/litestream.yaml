@@ -62,10 +62,11 @@ spec:
           resources:
             requests:
               cpu: 10m
-              memory: 32Mi
+              memory: 64Mi
             limits:
-              cpu: 200m
-              memory: 128Mi
+              cpu: 500m
+              # snapshotting/compacting the ~1.2GB DB spikes memory; 128Mi OOM-killed
+              memory: 512Mi
       volumes:
         - name: data
           persistentVolumeClaim:

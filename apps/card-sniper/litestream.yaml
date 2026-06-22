@@ -44,6 +44,12 @@ spec:
         - name: litestream
           image: litestream/litestream:0.5.12-scratch
           args: ["replicate"]
+          # Litestream 0.5 writes a _litestream_seq table into the live DB; the
+          # DB file is owned by uid 1000 (664) and the app writes it as root, so
+          # litestream must run as root too or it hits SQLITE_READONLY.
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
           envFrom:
             - secretRef:
                 name: card-sniper-litestream   # LITESTREAM_ACCESS_KEY_ID / _SECRET_ACCESS_KEY

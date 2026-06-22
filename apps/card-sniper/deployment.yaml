@@ -67,6 +67,8 @@ spec:
           envFrom:
             - secretRef:
                 name: card-sniper-env
+            - secretRef:
+                name: card-sniper-s3      # S3_ENDPOINT/REGION/BUCKET/ACCESS_KEY/SECRET_KEY — image bucket
           volumeMounts:
             - name: data
               mountPath: /data

@@ -86,6 +86,14 @@ spec:
             # wird von Meridian ignoriert (nutzt unsere OAuth-Subscription).
             - name: ANTHROPIC_BASE_URL
               value: "http://meridian.meridian.svc.cluster.local:3456"
+            # AI features (Max) run on self-hosted Ollama (Google Gemma) instead
+            # of Claude/Meridian — no API key, no cost, fully on-node.
+            - name: CARD_SNIPER_AI_PROVIDER
+              value: "ollama"
+            - name: CARD_SNIPER_OLLAMA_URL
+              value: "http://ollama.ollama.svc.cluster.local:11434"
+            - name: CARD_SNIPER_AI_MODEL
+              value: "gemma4:e2b"
           envFrom:
             - secretRef:
                 name: card-sniper-env

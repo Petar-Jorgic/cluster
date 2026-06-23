@@ -6,6 +6,7 @@ resources:
   - secret.yaml
   - ghcr-pull-secret.yaml
   - s3-secret.yaml
+  - iap-secret.yaml
   - litestream-secret.yaml
   - litestream.yaml
   - deployment.yaml

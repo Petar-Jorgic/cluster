@@ -40,8 +40,11 @@ spec:
               subPath: litestream.yml
       containers:
         - name: card-sniper
-          image: ghcr.io/petar-jorgic/card-sniper:7fa442316a46f100a72ff6270227af78453d0c21
-          imagePullPolicy: Always
+          # Built on-node with buildah and imported into k3s containerd by
+          # ~/deploy-cardsniper.sh on pj — no registry pull. IfNotPresent uses the
+          # locally-imported :latest; a deploy re-imports it and deletes the pod.
+          image: localhost/card-sniper:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
           env:

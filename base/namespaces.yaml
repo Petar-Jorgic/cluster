@@ -36,11 +36,6 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: n8n
----
-apiVersion: v1
-kind: Namespace
-metadata:
   name: whisper
 ---
 apiVersion: v1
@@ -76,24 +71,9 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: paperless-ngx
----
-apiVersion: v1
-kind: Namespace
-metadata:
   name: gotify
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: joplin
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: snacks
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: soulsync

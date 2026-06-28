@@ -5,7 +5,7 @@ metadata:
   labels:
     app: cm-fetcher
 spec:
-  replicas: 1
+  replicas: 4
   selector:
     matchLabels:
       app: cm-fetcher

@@ -22,6 +22,14 @@ spec:
         - name: cm-fetcher
           image: localhost/cm-fetcher:latest
           imagePullPolicy: IfNotPresent
+          # Residential proxy (the "home IP got flagged" fix). Create a sealed
+          # secret `cm-fetcher-proxy` with CM_FETCHER_PROXY=http://user:pass@host:port
+          # (a rotating gateway rotates the exit IP per request). Optional — the
+          # pod starts without it (then it uses the bare home IP).
+          envFrom:
+            - secretRef:
+                name: cm-fetcher-proxy
+                optional: true
           ports:
             - containerPort: 8080
           resources:

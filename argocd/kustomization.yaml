@@ -37,3 +37,4 @@ resources:
   - dasharr.yaml
   - suggestarr.yaml
   - minio.yaml
+  - cm-fetcher.yaml

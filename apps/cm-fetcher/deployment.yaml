@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cm-fetcher
+  labels:
+    app: cm-fetcher
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: cm-fetcher
+  template:
+    metadata:
+      labels:
+        app: cm-fetcher
+    spec:
+      # Camoufox/Firefox is x86 — pin to the x86 node. Built on-node with buildah
+      # and imported into containerd (localhost image, no registry).
+      nodeSelector:
+        kubernetes.io/hostname: pj
+      containers:
+        - name: cm-fetcher
+          image: localhost/cm-fetcher:latest
+          imagePullPolicy: IfNotPresent
+          # Residential proxy (the "home IP got flagged" fix). Create a sealed
+          # secret `cm-fetcher-proxy` with CM_FETCHER_PROXY=http://user:pass@host:port
+          # (a rotating gateway rotates the exit IP per request). Optional — the
+          # pod starts without it (then it uses the bare home IP).
+          envFrom:
+            - secretRef:
+                name: cm-fetcher-proxy
+                optional: true
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "2"
+              memory: 1500Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10

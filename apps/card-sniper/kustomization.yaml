@@ -8,6 +8,7 @@ resources:
   - s3-secret.yaml
   - iap-secret.yaml
   - litestream-secret.yaml
+  - rapidapi-secret.yaml
   - litestream.yaml
   - deployment.yaml
   - service.yaml

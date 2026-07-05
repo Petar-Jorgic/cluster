@@ -101,6 +101,9 @@ spec:
                 name: card-sniper-s3      # S3_ENDPOINT/REGION/BUCKET/ACCESS_KEY/SECRET_KEY — image bucket
             - secretRef:
                 name: card-sniper-iap     # REVENUECAT_WEBHOOK_TOKEN — IAP webhook auth
+            - secretRef:
+                name: card-sniper-rapidapi  # RAPIDAPI_KEY + RESELLER_DELAY_MS — reseller price API
+                optional: true
           volumeMounts:
             - name: data
               mountPath: /data

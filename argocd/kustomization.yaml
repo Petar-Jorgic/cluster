@@ -38,3 +38,4 @@ resources:
   - suggestarr.yaml
   - minio.yaml
   - cm-fetcher.yaml
+  - obsidian-livesync.yaml

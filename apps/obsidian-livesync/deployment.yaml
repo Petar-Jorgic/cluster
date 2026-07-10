@@ -19,6 +19,10 @@ spec:
     spec:
       nodeSelector:
         kubernetes.io/hostname: pj   # NFS client only on control-plane node (matches minio)
+      securityContext:
+        runAsUser: 5984     # run as couchdb; entrypoint then skips the root chown that
+        runAsGroup: 5984    # fails on the read-only configmap subPath (set -e -> silent exit)
+        fsGroup: 5984
       containers:
         - name: couchdb
           image: couchdb:3.4.2

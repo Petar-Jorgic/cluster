@@ -86,14 +86,15 @@ spec:
             # wird von Meridian ignoriert (nutzt unsere OAuth-Subscription).
             - name: ANTHROPIC_BASE_URL
               value: "http://meridian.meridian.svc.cluster.local:3456"
-            # AI features (Max) run on self-hosted Ollama (Google Gemma) instead
-            # of Claude/Meridian — no API key, no cost, fully on-node.
+            # AI features (Max) run on the Gemini API (flash-lite: ~1s vision,
+            # free tier for the beta phase). Ollama (Gemma) stays as fallback via
+            # CARD_SNIPER_AI_PROVIDER=ollama; key in card-sniper-gemini secret.
             - name: CARD_SNIPER_AI_PROVIDER
-              value: "ollama"
+              value: "gemini"
             - name: CARD_SNIPER_OLLAMA_URL
               value: "http://ollama.ollama.svc.cluster.local:11434"
             - name: CARD_SNIPER_AI_MODEL
-              value: "gemma4:e2b"
+              value: "gemini-flash-lite-latest"
           envFrom:
             - secretRef:
                 name: card-sniper-env
@@ -103,6 +104,9 @@ spec:
                 name: card-sniper-iap     # REVENUECAT_WEBHOOK_TOKEN — IAP webhook auth
             - secretRef:
                 name: card-sniper-rapidapi  # RAPIDAPI_KEY + RESELLER_DELAY_MS — reseller price API
+                optional: true
+            - secretRef:
+                name: card-sniper-gemini    # GEMINI_API_KEY — scanner vision + deck/market AI
                 optional: true
           volumeMounts:
             - name: data

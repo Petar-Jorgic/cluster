@@ -9,6 +9,7 @@ resources:
   - iap-secret.yaml
   - litestream-secret.yaml
   - rapidapi-secret.yaml
+  - gemini-secret.yaml
   - litestream.yaml
   - deployment.yaml
   - service.yaml

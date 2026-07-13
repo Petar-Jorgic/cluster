@@ -1,5 +1,18 @@
-# GitHub's webhook lands here (via the Pangolin/newt tunnel -> Traefik). The
-# EventListener verifies the HMAC signature itself; unsigned requests are dropped.
+# GitHub's webhook lands here. Reuses the app's existing public host (card.pj-home-lab.com,
+# already routed through the Pangolin/newt tunnel) under a path instead of claiming a new
+# hostname — Traefik merges same-host rules across namespaces and matches the longer path
+# first, so the app's own "/" rule is unaffected. StripPrefix hands the EventListener a
+# bare "/". Exposure is safe: the EventListener drops anything without a valid HMAC.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-ci-hook
+  namespace: card-sniper-ci
+spec:
+  stripPrefix:
+    prefixes:
+      - /ci-hook
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -7,13 +20,14 @@ metadata:
   namespace: card-sniper-ci
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+    traefik.ingress.kubernetes.io/router.middlewares: card-sniper-ci-strip-ci-hook@kubernetescrd
 spec:
   ingressClassName: traefik
   rules:
-    - host: tekton.pj-home-lab.com
+    - host: card.pj-home-lab.com
       http:
         paths:
-          - path: /
+          - path: /ci-hook
             pathType: Prefix
             backend:
               service:

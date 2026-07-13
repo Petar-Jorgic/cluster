@@ -71,8 +71,8 @@ spec:
     - name: rollout
       image: rancher/kubectl:v1.35.4
       script: |
-        #!/bin/bash
-        set -euo pipefail
+        #!/bin/sh
+        set -eu
         # No spec change: the Deployment already says :latest + pullPolicy Always,
         # so deleting the pod is what pulls the image we just pushed.
         kubectl -n card-sniper delete pod -l app.kubernetes.io/name=card-sniper --wait=true

@@ -113,11 +113,14 @@ spec:
               mountPath: /data
           resources:
             requests:
-              cpu: 50m
-              memory: 64Mi
+              cpu: 250m
+              memory: 128Mi
+            # Thumbnail decoding (image crate, spawn_blocking) is CPU-hungry;
+            # 500m starved the async runtime for minutes under image bursts
+            # (API requests visibly hung). The node has 16 cores.
             limits:
-              cpu: 500m
-              memory: 256Mi
+              cpu: "3"
+              memory: 512Mi
       volumes:
         - name: data
           persistentVolumeClaim:

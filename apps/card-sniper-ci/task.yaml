@@ -68,13 +68,31 @@ spec:
           buildah --root "$ROOT" push --authfile "$AUTH" "$IMG:$TAG" "docker://$IMG:$TAG"
         done
 
+    # rancher/kubectl ships no shell, so these two steps use `command` directly
+    # instead of a script. No spec change is made: the Deployment already says
+    # :latest + pullPolicy Always, so deleting the pod is what pulls the image we
+    # just pushed — and ArgoCD selfHeal has nothing to revert.
     - name: rollout
       image: rancher/kubectl:v1.35.4
-      script: |
-        #!/bin/sh
-        set -eu
-        # No spec change: the Deployment already says :latest + pullPolicy Always,
-        # so deleting the pod is what pulls the image we just pushed.
-        kubectl -n card-sniper delete pod -l app.kubernetes.io/name=card-sniper --wait=true
-        kubectl -n card-sniper wait --for=condition=ready pod \
-          -l app.kubernetes.io/name=card-sniper --timeout=300s
+      command: ["kubectl"]
+      args:
+        - -n
+        - card-sniper
+        - delete
+        - pod
+        - -l
+        - app.kubernetes.io/name=card-sniper
+        - --wait=true
+
+    - name: wait-ready
+      image: rancher/kubectl:v1.35.4
+      command: ["kubectl"]
+      args:
+        - -n
+        - card-sniper
+        - wait
+        - --for=condition=ready
+        - pod
+        - -l
+        - app.kubernetes.io/name=card-sniper
+        - --timeout=300s

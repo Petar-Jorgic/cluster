@@ -69,7 +69,7 @@ metadata:
 rules:
   - apiGroups: [""]
     resources: ["pods"]
-    verbs: ["get", "list", "delete"]
+    verbs: ["get", "list", "watch", "delete"] # watch: `kubectl wait --for=condition=ready`
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding

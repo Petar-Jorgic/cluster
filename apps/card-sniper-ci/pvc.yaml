@@ -1,0 +1,15 @@
+# buildah's container store. Without it every build is cold: the Rust musl
+# dependency layer alone is ~10 min. local-path pins the volume to one node,
+# which is why the TaskRun is scheduled onto pj (see triggers.yaml).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: buildah-cache
+  namespace: card-sniper-ci
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 30Gi

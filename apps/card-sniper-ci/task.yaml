@@ -1,0 +1,71 @@
+# Build card-sniper from a commit and roll the pod. Deliberately one Task with
+# three steps instead of a Pipeline + catalog tasks: nothing here fans out, so a
+# Pipeline would only add objects to debug.
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: build-and-deploy
+  namespace: card-sniper-ci
+spec:
+  params:
+    - name: revision
+      description: Commit SHA to build.
+    - name: repo-url
+      default: https://github.com/Petar-Jorgic/card-sniper.git
+    - name: image
+      default: ghcr.io/petar-jorgic/card-sniper
+  workspaces:
+    - name: source
+    - name: cache
+      description: buildah's /var/lib/containers — the layer cache.
+    - name: dockerconfig
+      description: ghcr push credentials (.dockerconfigjson).
+  steps:
+    - name: clone
+      image: alpine/git:2.49.1
+      workingDir: $(workspaces.source.path)
+      script: |
+        #!/bin/sh
+        set -eu
+        git init -q .
+        git remote add origin "$(params.repo-url)"
+        git fetch -q --depth 1 origin "$(params.revision)"
+        git checkout -q FETCH_HEAD
+        git log --oneline -1
+
+    - name: build-push
+      image: quay.io/buildah/stable:v1.41.0
+      workingDir: $(workspaces.source.path)
+      securityContext:
+        privileged: true
+      env:
+        - name: STORAGE_DRIVER
+          value: overlay
+        # Keep the store on the cache workspace so --layers survives the pod.
+        - name: CONTAINERS_STORAGE_CONF
+          value: /dev/null
+      script: |
+        #!/bin/bash
+        set -euo pipefail
+        ROOT="$(workspaces.cache.path)/storage"
+        AUTH="$(workspaces.dockerconfig.path)/.dockerconfigjson"
+        IMG="$(params.image)"
+        SHA="$(params.revision)"
+
+        buildah --root "$ROOT" bud --layers \
+          -t "$IMG:$SHA" -t "$IMG:latest" -f Dockerfile .
+
+        for TAG in "$SHA" latest; do
+          buildah --root "$ROOT" push --authfile "$AUTH" "$IMG:$TAG" "docker://$IMG:$TAG"
+        done
+
+    - name: rollout
+      image: bitnami/kubectl:1.33.2
+      script: |
+        #!/bin/bash
+        set -euo pipefail
+        # No spec change: the Deployment already says :latest + pullPolicy Always,
+        # so deleting the pod is what pulls the image we just pushed.
+        kubectl -n card-sniper delete pod -l app.kubernetes.io/name=card-sniper --wait=true
+        kubectl -n card-sniper wait --for=condition=ready pod \
+          -l app.kubernetes.io/name=card-sniper --timeout=300s

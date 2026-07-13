@@ -1,0 +1,74 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerBinding
+metadata:
+  name: card-sniper-push
+  namespace: card-sniper-ci
+spec:
+  params:
+    - name: revision
+      value: $(body.after)
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: card-sniper-build
+  namespace: card-sniper-ci
+spec:
+  params:
+    - name: revision
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1
+      kind: TaskRun
+      metadata:
+        generateName: card-sniper-build-
+        namespace: card-sniper-ci
+      spec:
+        serviceAccountName: card-sniper-ci
+        taskRef:
+          name: build-and-deploy
+        params:
+          - name: revision
+            value: $(tt.params.revision)
+        timeout: "1h0m0s"
+        podTemplate:
+          # The buildah cache PVC is local-path, i.e. bound to one node's disk.
+          nodeSelector:
+            kubernetes.io/hostname: pj
+        workspaces:
+          - name: source
+            emptyDir: {}
+          - name: cache
+            persistentVolumeClaim:
+              claimName: buildah-cache
+          - name: dockerconfig
+            secret:
+              secretName: ghcr-push-secret
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: EventListener
+metadata:
+  name: card-sniper
+  namespace: card-sniper-ci
+spec:
+  serviceAccountName: card-sniper-ci
+  triggers:
+    - name: github-push-master
+      interceptors:
+        - ref:
+            name: github
+          params:
+            - name: secretRef
+              value:
+                secretName: github-webhook-secret
+                secretKey: secretToken
+            - name: eventTypes
+              value: ["push"]
+        - ref:
+            name: cel
+          params:
+            - name: filter
+              value: body.ref == 'refs/heads/master'
+      bindings:
+        - ref: card-sniper-push
+      template:
+        ref: card-sniper-build

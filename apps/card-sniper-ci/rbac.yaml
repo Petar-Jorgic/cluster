@@ -1,0 +1,86 @@
+# One ServiceAccount for both roles: the EventListener (reads triggers, creates
+# TaskRuns) and the build TaskRun itself (deletes the card-sniper pod to roll it).
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: card-sniper-ci
+  namespace: card-sniper-ci
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: card-sniper-ci
+  namespace: card-sniper-ci
+rules:
+  - apiGroups: ["triggers.tekton.dev"]
+    resources: ["eventlisteners", "triggerbindings", "triggertemplates", "triggers", "interceptors"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["configmaps", "secrets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["tekton.dev"]
+    resources: ["taskruns", "pipelineruns"]
+    verbs: ["create", "get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: card-sniper-ci
+  namespace: card-sniper-ci
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: card-sniper-ci
+subjects:
+  - kind: ServiceAccount
+    name: card-sniper-ci
+    namespace: card-sniper-ci
+---
+# ClusterInterceptors (the GitHub HMAC check) are cluster-scoped.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: card-sniper-ci-interceptors
+rules:
+  - apiGroups: ["triggers.tekton.dev"]
+    resources: ["clusterinterceptors", "clustertriggerbindings"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: card-sniper-ci-interceptors
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: card-sniper-ci-interceptors
+subjects:
+  - kind: ServiceAccount
+    name: card-sniper-ci
+    namespace: card-sniper-ci
+---
+# The rollout step lives in the app's namespace: delete the pod so the fresh
+# :latest is pulled. No spec change -> nothing for ArgoCD selfHeal to revert.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: card-sniper-ci-rollout
+  namespace: card-sniper
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: card-sniper-ci-rollout
+  namespace: card-sniper
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: card-sniper-ci-rollout
+subjects:
+  - kind: ServiceAccount
+    name: card-sniper-ci
+    namespace: card-sniper-ci

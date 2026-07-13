@@ -40,11 +40,13 @@ spec:
               subPath: litestream.yml
       containers:
         - name: card-sniper
-          # Built on-node with buildah and imported into k3s containerd by
-          # ~/deploy-cardsniper.sh on pj — no registry pull. IfNotPresent uses the
-          # locally-imported :latest; a deploy re-imports it and deletes the pod.
-          image: localhost/card-sniper:latest
-          imagePullPolicy: IfNotPresent
+          # Built in-cluster by Tekton (apps/card-sniper-ci) on every push to
+          # master and pushed to ghcr as :latest + :<sha>. The build's last step
+          # deletes this pod; Always then pulls the image it just pushed. The tag
+          # stays :latest on purpose — rewriting it here would fight ArgoCD
+          # selfHeal. ~/deploy-cardsniper.sh on pj remains the offline path.
+          image: ghcr.io/petar-jorgic/card-sniper:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8000
           env:

@@ -1,0 +1,22 @@
+# GitHub's webhook lands here (via the Pangolin/newt tunnel -> Traefik). The
+# EventListener verifies the HMAC signature itself; unsigned requests are dropped.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: card-sniper-ci
+  namespace: card-sniper-ci
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: tekton.pj-home-lab.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: el-card-sniper
+                port:
+                  number: 8080

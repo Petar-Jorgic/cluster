@@ -34,7 +34,7 @@ spec:
         git log --oneline -1
 
     - name: build-push
-      image: quay.io/buildah/stable:v1.41.0
+      image: quay.io/buildah/stable:v1.43.1
       workingDir: $(workspaces.source.path)
       securityContext:
         privileged: true
@@ -60,7 +60,7 @@ spec:
         done
 
     - name: rollout
-      image: bitnami/kubectl:1.33.2
+      image: rancher/kubectl:v1.35.4
       script: |
         #!/bin/bash
         set -euo pipefail

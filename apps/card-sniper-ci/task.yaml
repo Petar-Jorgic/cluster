@@ -24,10 +24,19 @@ spec:
     - name: clone
       image: alpine/git:2.49.1
       workingDir: $(workspaces.source.path)
+      env:
+        - name: GITHUB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: github-token
+              key: token
       script: |
         #!/bin/sh
         set -eu
+        # Private repo: authenticate via the token, and keep it out of the remote
+        # URL so it can't leak into .git/config or any log line.
         git init -q .
+        git config credential.helper '!f() { echo "username=x-access-token"; echo "password=$GITHUB_TOKEN"; }; f'
         git remote add origin "$(params.repo-url)"
         git fetch -q --depth 1 origin "$(params.revision)"
         git checkout -q FETCH_HEAD

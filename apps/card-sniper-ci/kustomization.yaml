@@ -5,6 +5,7 @@ resources:
   - rbac.yaml
   - pvc.yaml
   - github-webhook-secret.yaml
+  - github-token-secret.yaml
   - ghcr-push-secret.yaml
   - task.yaml
   - triggers.yaml

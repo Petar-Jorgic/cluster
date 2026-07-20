@@ -1,5 +1,11 @@
-# Ein Wildcard-Zertifikat fuer alle .lan-Hosts.
-# Kurze Laufzeit ist unkritisch, cert-manager erneuert automatisch.
+# Zertifikat fuer alle .lan-Hosts.
+#
+# Kein Wildcard: *.lan waere nur eine Ebene unter einer TLD, das lehnen
+# Browser und curl grundsaetzlich ab. Die Namen muessen einzeln stehen.
+#
+# Neuen .lan-Host angelegt? Hier eintragen, sonst gibt es dafuer eine
+# Zertifikatswarnung. Liste erzeugen mit:
+#   kubectl get ingress -A -o jsonpath=... | grep "\.lan$" | sort -u
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -13,9 +19,45 @@ spec:
     algorithm: ECDSA
     size: 256
     rotationPolicy: Always
+  commonName: home-lab.lan
   dnsNames:
-    - "*.lan"
-    - "lan"
+    - adguard.lan
+    - aniworld.lan
+    - argocd.lan
+    - audiobooks.lan
+    - bazarr.lan
+    - bindery.lan
+    - card-sniper.lan
+    - cardsniper-preview.lan
+    - changes.lan
+    - claude.lan
+    - dasharr.lan
+    - element.lan
+    - gotify.lan
+    - grafana.lan
+    - headlamp.lan
+    - homarr.lan
+    - immich.lan
+    - jellyfin.lan
+    - jellyseerr.lan
+    - matrix.lan
+    - miniflux.lan
+    - minio.lan
+    - obsidian.lan
+    - omni.lan
+    - prowlarr.lan
+    - qbittorrent.lan
+    - radarr.lan
+    - readarr.lan
+    - s3.lan
+    - semaphore.lan
+    - sonarr.lan
+    - speedtest.lan
+    - suggestarr.lan
+    - trailarr.lan
+    - trillium.lan
+    - uptime.lan
+    - vikunja.lan
   issuerRef:
     name: lan-ca-issuer
     kind: ClusterIssuer

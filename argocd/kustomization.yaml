@@ -39,3 +39,5 @@ resources:
   - minio.yaml
   - cm-fetcher.yaml
   - obsidian-livesync.yaml
+  - cert-manager.yaml
+  - cluster-pki.yaml

@@ -1,0 +1,33 @@
+# Ein Wildcard-Zertifikat fuer alle .lan-Hosts.
+# Kurze Laufzeit ist unkritisch, cert-manager erneuert automatisch.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wildcard-lan
+  namespace: kube-system
+spec:
+  secretName: wildcard-lan-tls
+  duration: 2160h    # 90 Tage
+  renewBefore: 720h  # 30 Tage vorher erneuern
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+    rotationPolicy: Always
+  dnsNames:
+    - "*.lan"
+    - "lan"
+  issuerRef:
+    name: lan-ca-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io
+---
+# Traefik liefert dieses Zertifikat als Standard aus, damit keiner der
+# bestehenden Ingresses angefasst werden muss.
+apiVersion: traefik.io/v1alpha1
+kind: TLSStore
+metadata:
+  name: default
+  namespace: kube-system
+spec:
+  defaultCertificate:
+    secretName: wildcard-lan-tls

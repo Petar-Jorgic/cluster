@@ -1,0 +1,36 @@
+# Bootstrap: selbstsignierter Issuer, nur um das CA-Zertifikat zu erzeugen.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned-bootstrap
+spec:
+  selfSigned: {}
+---
+# Die lokale Root-CA. Dieses Zertifikat wird auf den Endgeraeten installiert.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: lan-ca
+  namespace: cert-manager
+spec:
+  isCA: true
+  commonName: Home Lab Local CA
+  secretName: lan-ca-tls
+  duration: 87600h    # 10 Jahre
+  renewBefore: 8760h  # 1 Jahr vorher erneuern
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: selfsigned-bootstrap
+    kind: ClusterIssuer
+    group: cert-manager.io
+---
+# Aus der Root-CA ausstellender Issuer fuer alle .lan-Zertifikate.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: lan-ca-issuer
+spec:
+  ca:
+    secretName: lan-ca-tls

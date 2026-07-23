@@ -125,7 +125,7 @@ spec:
               # 512Mi wurde beim naechtlichen Import OOM-gekillt (23.07. 11:53):
               # price-guide-JSON + CM-Katalog + Episoden-Puffer liegen gleichzeitig
               # im Speicher.
-              memory: 1Gi
+              memory: 2Gi
       volumes:
         - name: data
           persistentVolumeClaim:

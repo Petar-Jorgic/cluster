@@ -15,6 +15,9 @@ rules:
   - apiGroups: ["apps"]
     resources: ["replicasets", "deployments"]
     verbs: ["get", "list", "delete"]
+  - apiGroups: ["tekton.dev"]
+    resources: ["taskruns"]
+    verbs: ["get", "list", "delete"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -86,11 +89,26 @@ spec:
                     [ -n "$ns" ] && kubectl delete rs -n "$ns" "$name" --ignore-not-found >/dev/null 2>&1
                   done
 
-                  echo "cleanup: pods=$PODS rs=$RS"
+                  # --- finished Tekton TaskRuns older than 24h: their pods sind
+                  # oben geloescht worden; die TaskRun-Objekte bleiben sonst liegen
+                  # und der Controller spammt "pods not found"-InternalError-Events ---
+                  TR=0
+                  if kubectl api-resources 2>/dev/null | grep -q '^taskruns'; then
+                    # busybox date: kein '-24 hours', aber '-d @epoch' (im Image verifiziert)
+                    CUTOFF=$(date -u -d @$(( $(date +%s) - 86400 )) +%Y-%m-%dT%H:%M:%SZ)
+                    TRLIST=$(kubectl get taskruns -A -o jsonpath='{range .items[?(@.status.completionTime)]}{.metadata.namespace}|{.metadata.name}|{.status.completionTime}{"\n"}{end}' 2>/dev/null \
+                      | awk -F'|' -v c="$CUTOFF" '$3 != "" && $3 < c {print $1" "$2}')
+                    TR=$(printf '%s\n' "$TRLIST" | grep -c .)
+                    printf '%s\n' "$TRLIST" | while read -r ns name; do
+                      [ -n "$ns" ] && kubectl delete taskrun -n "$ns" "$name" --ignore-not-found >/dev/null 2>&1
+                    done
+                  fi
+
+                  echo "cleanup: pods=$PODS rs=$RS taskruns=$TR"
 
                   # --- Gotify notify only if something was actually removed ---
-                  if [ "$((PODS + RS))" -gt 0 ]; then
-                    MSG="Aufgeraeumt: ${PODS} Pods (Completed/Failed), ${RS} leere ReplicaSets."
+                  if [ "$((PODS + RS + TR))" -gt 0 ]; then
+                    MSG="Aufgeraeumt: ${PODS} Pods (Completed/Failed), ${RS} leere ReplicaSets, ${TR} alte TaskRuns."
                     curl -fsS -X POST "${GOTIFY_URL}/message?token=${GOTIFY_TOKEN}" \
                       -H "Content-Type: application/json" \
                       -d "{\"title\":\"Cluster Cleanup\",\"message\":\"${MSG}\",\"priority\":3}" >/dev/null 2>&1 \

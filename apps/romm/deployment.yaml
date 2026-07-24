@@ -47,6 +47,9 @@ spec:
       # Konvention wie card-sniper/romm-db.
       nodeSelector:
         kubernetes.io/hostname: pj
+      # k8s injiziert sonst ROMM_PORT=tcp://<ClusterIP>:8080 (Service "romm")
+      # und RomMs nginx nimmt ROMM_PORT als listen-Port -> Crashloop.
+      enableServiceLinks: false
       containers:
         - name: romm
           image: rommapp/romm:5.0.0

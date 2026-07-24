@@ -41,3 +41,4 @@ resources:
   - obsidian-livesync.yaml
   - cert-manager.yaml
   - cluster-pki.yaml
+  - romm.yaml

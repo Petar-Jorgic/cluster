@@ -1,0 +1,105 @@
+# Save-Spiegel: RomM trennt Saves pro Emulator (Web-Player="mgba", Argosy=
+# "builtin") — dieser Job kopiert alle 5min den neuesten .srm eines Spiels in
+# die jeweils anderen Emulator-Ordner und registriert ihn in der RomM-DB, damit
+# Browser und Handy denselben Spielstand ziehen. Nur .srm (portabel); Save-
+# STATES bleiben pro Player (Formate nicht kompatibel).
+# ponytail: greift in RomMs saves-Tabelle — nach RomM-Updates Schema pruefen.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: romm-save-mirror
+data:
+  mirror.sh: |
+    #!/bin/bash
+    set -eu
+    TAB=$(printf '\t')
+    Q() { mariadb -h romm-db -uromm-user -p"$MARIADB_PASSWORD" romm -N -B -e "$1" </dev/null; }
+
+    # Pro (user,rom): global neuester srm (Quelle) + je anderer Emulator-Bucket
+    # dessen neuester srm (Ziel-Vergleich). Nur Buckets, die der User fuer
+    # dieses Spiel schon benutzt hat.
+    Q "WITH r AS (
+         SELECT user_id, rom_id, emulator, file_path, file_name,
+                ROW_NUMBER() OVER (PARTITION BY user_id, rom_id ORDER BY updated_at DESC, id DESC) rn
+         FROM saves WHERE file_extension='srm' AND missing_from_fs=0),
+       b AS (
+         SELECT user_id, rom_id, emulator, file_path, file_name,
+                ROW_NUMBER() OVER (PARTITION BY user_id, rom_id, emulator ORDER BY updated_at DESC, id DESC) brn
+         FROM saves WHERE file_extension='srm' AND missing_from_fs=0)
+       SELECT n.user_id, n.rom_id, n.file_path, n.file_name, b.emulator, b.file_path, b.file_name
+       FROM r n JOIN b ON b.user_id=n.user_id AND b.rom_id=n.rom_id AND b.brn=1
+                      AND b.emulator<>n.emulator
+       WHERE n.rn=1" |
+    while IFS="$TAB" read -r UID_ RID SRC_PATH SRC_NAME DST_EMU DST_PATH DST_NAME; do
+      SRC="/assets/$SRC_PATH/$SRC_NAME"
+      DST_OLD="/assets/$DST_PATH/$DST_NAME"
+      [ -f "$SRC" ] || continue
+      # Ping-Pong-Schutz: Inhalt identisch -> nichts zu tun
+      if [ -f "$DST_OLD" ]; then
+        [ "$(md5sum "$SRC" | cut -d' ' -f1)" = "$(md5sum "$DST_OLD" | cut -d' ' -f1)" ] && continue
+      fi
+      MD5=$(md5sum "$SRC" | cut -d' ' -f1)
+      BASE=$(printf '%s' "$SRC_NAME" | sed 's/ \[[^][]*\]\.srm$/.srm/' | sed 's/\.srm$//')
+      TS=$(date '+%Y-%m-%d %H-%M-%S')
+      NEW_NAME="$BASE [mirror $TS].srm"
+      mkdir -p "/assets/$DST_PATH"
+      cp "$SRC" "/assets/$DST_PATH/$NEW_NAME"
+      SIZE=$(stat -c%s "/assets/$DST_PATH/$NEW_NAME")
+      ESC_NAME=$(printf '%s' "$NEW_NAME" | sed "s/'/''/g")
+      ESC_BASE=$(printf '%s' "$BASE" | sed "s/'/''/g")
+      ESC_PATH=$(printf '%s' "$DST_PATH" | sed "s/'/''/g")
+      ESC_EMU=$(printf '%s' "$DST_EMU" | sed "s/'/''/g")
+      Q "INSERT INTO saves (emulator, file_name, file_name_no_tags, file_name_no_ext,
+           file_extension, file_path, file_size_bytes, rom_id, user_id,
+           missing_from_fs, content_hash, is_public)
+         VALUES ('$ESC_EMU', '$ESC_NAME', '$ESC_BASE.srm', '$ESC_BASE [mirror $TS]',
+           'srm', '$ESC_PATH', $SIZE, $RID, $UID_, 0, '$MD5', 0)"
+      echo "mirrored: user=$UID_ rom=$RID -> $DST_EMU ($NEW_NAME)"
+    done
+    echo "done"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: romm-save-mirror
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 120
+      template:
+        spec:
+          restartPolicy: Never
+          nodeSelector:
+            kubernetes.io/hostname: pj
+          containers:
+            - name: mirror
+              image: mariadb:11
+              command: ["/bin/bash", "/scripts/mirror.sh"]
+              env:
+                - name: MARIADB_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: romm-secrets
+                      key: MARIADB_PASSWORD
+              volumeMounts:
+                - name: assets
+                  mountPath: /assets
+                  subPath: assets
+                - name: scripts
+                  mountPath: /scripts
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+          volumes:
+            - name: assets
+              persistentVolumeClaim:
+                claimName: romm-assets
+            - name: scripts
+              configMap:
+                name: romm-save-mirror

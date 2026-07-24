@@ -23,14 +23,15 @@ data:
                 ROW_NUMBER() OVER (PARTITION BY user_id, rom_id ORDER BY updated_at DESC, id DESC) rn
          FROM saves WHERE file_extension='srm' AND missing_from_fs=0),
        b AS (
-         SELECT user_id, rom_id, emulator, file_path, file_name,
+         SELECT user_id, rom_id, emulator, file_path, file_name, slot,
                 ROW_NUMBER() OVER (PARTITION BY user_id, rom_id, emulator ORDER BY updated_at DESC, id DESC) brn
          FROM saves WHERE file_extension='srm' AND missing_from_fs=0)
-       SELECT n.user_id, n.rom_id, n.file_path, n.file_name, b.emulator, b.file_path, b.file_name
+       SELECT n.user_id, n.rom_id, n.file_path, n.file_name, b.emulator, b.file_path, b.file_name,
+              COALESCE(b.slot, 'NULL')
        FROM r n JOIN b ON b.user_id=n.user_id AND b.rom_id=n.rom_id AND b.brn=1
                       AND b.emulator<>n.emulator
        WHERE n.rn=1" |
-    while IFS="$TAB" read -r UID_ RID SRC_PATH SRC_NAME DST_EMU DST_PATH DST_NAME; do
+    while IFS="$TAB" read -r UID_ RID SRC_PATH SRC_NAME DST_EMU DST_PATH DST_NAME DST_SLOT; do
       SRC="/assets/$SRC_PATH/$SRC_NAME"
       DST_OLD="/assets/$DST_PATH/$DST_NAME"
       [ -f "$SRC" ] || continue
@@ -49,11 +50,14 @@ data:
       ESC_BASE=$(printf '%s' "$BASE" | sed "s/'/''/g")
       ESC_PATH=$(printf '%s' "$DST_PATH" | sed "s/'/''/g")
       ESC_EMU=$(printf '%s' "$DST_EMU" | sed "s/'/''/g")
+      # Slot des Ziel-Buckets uebernehmen — Argosy laedt beim Start NUR den
+      # 'autosave'-Slot; ein NULL-Slot-Spiegel wurde ignoriert.
+      if [ "$DST_SLOT" = "NULL" ]; then SLOT_SQL="NULL"; else SLOT_SQL="'$(printf '%s' "$DST_SLOT" | sed "s/'/''/g")'"; fi
       Q "INSERT INTO saves (emulator, file_name, file_name_no_tags, file_name_no_ext,
            file_extension, file_path, file_size_bytes, rom_id, user_id,
-           missing_from_fs, content_hash, is_public)
+           missing_from_fs, content_hash, is_public, slot)
          VALUES ('$ESC_EMU', '$ESC_NAME', '$ESC_BASE.srm', '$ESC_BASE [mirror $TS]',
-           'srm', '$ESC_PATH', $SIZE, $RID, $UID_, 0, '$MD5', 0)"
+           'srm', '$ESC_PATH', $SIZE, $RID, $UID_, 0, '$MD5', 0, $SLOT_SQL)"
       echo "mirrored: user=$UID_ rom=$RID -> $DST_EMU ($NEW_NAME)"
     done
     echo "done"

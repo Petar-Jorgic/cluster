@@ -1,0 +1,59 @@
+# ROMs vom NAS (read-write: RomM kann Uploads/Umbenennen) + Assets (Saves/
+# States/Screenshots — der Grund fuer RomM: serverseitig, multi-device).
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: romm-library-pv
+spec:
+  capacity:
+    storage: 500Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-romm-library
+  nfs:
+    server: 192.168.1.162
+    path: /volume1/docker/arr/Plex
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: romm-library
+  namespace: romm
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs-romm-library
+  resources:
+    requests:
+      storage: 500Gi
+  volumeName: romm-library-pv
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: romm-assets-pv
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-romm-assets
+  nfs:
+    server: 192.168.1.162
+    path: /volume1/docker/romm
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: romm-assets
+  namespace: romm
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs-romm-assets
+  resources:
+    requests:
+      storage: 20Gi
+  volumeName: romm-assets-pv

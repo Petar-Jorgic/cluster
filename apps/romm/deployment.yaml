@@ -1,0 +1,105 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: romm-resources
+  namespace: romm
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: romm-redis-data
+  namespace: romm
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: romm
+  labels:
+    app.kubernetes.io/name: romm
+    app.kubernetes.io/part-of: romm
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: romm
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: romm
+    spec:
+      # local-path PVCs (resources/redis) binden node-lokal — gleiche Pinning-
+      # Konvention wie card-sniper/romm-db.
+      nodeSelector:
+        kubernetes.io/hostname: pj
+      containers:
+        - name: romm
+          image: rommapp/romm:5.0.0
+          env:
+            - name: DB_HOST
+              value: romm-db
+            - name: DB_NAME
+              value: romm
+            - name: DB_USER
+              value: romm-user
+            - name: HASHEOUS_API_ENABLED
+              value: "true"
+          envFrom:
+            - secretRef:
+                name: romm-secrets # DB_PASSWD + ROMM_AUTH_SECRET_KEY
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: library
+              mountPath: /romm/library
+            # ein NFS-PV (/volume1/docker/romm) mit den zwei Unterordnern
+            - name: assets
+              mountPath: /romm/assets
+              subPath: assets
+            - name: assets
+              mountPath: /romm/config
+              subPath: config
+            - name: resources
+              mountPath: /romm/resources
+            - name: redis-data
+              mountPath: /redis-data
+          readinessProbe:
+            httpGet:
+              path: /api/heartbeat
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 2Gi
+      volumes:
+        - name: library
+          persistentVolumeClaim:
+            claimName: romm-library
+        - name: assets
+          persistentVolumeClaim:
+            claimName: romm-assets
+        - name: resources
+          persistentVolumeClaim:
+            claimName: romm-resources
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: romm-redis-data

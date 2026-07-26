@@ -17,6 +17,8 @@ spec:
       template:
         spec:
           restartPolicy: Never
+          nodeSelector:
+            kubernetes.io/hostname: pj
           containers:
             - name: chmod
               image: busybox:1.36

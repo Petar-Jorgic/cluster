@@ -1,0 +1,43 @@
+# UGOS-NFS setzt sporadisch Mode 0000 auf Dateien, die qBittorrent schreibt
+# (Sonarr/Radarr koennen dann nicht importieren). Sweep repariert alle 5 min.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: downloads-perm-fix
+  labels:
+    app.kubernetes.io/part-of: arr-stack
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 240
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: chmod
+              image: busybox:1.36
+              command:
+                - sh
+                - -c
+                - |
+                  find /downloads -type f ! -perm -u+r -exec chmod 664 {} +
+                  find /downloads -type d ! -perm -u+rx -exec chmod 775 {} +
+              volumeMounts:
+                - name: nas
+                  mountPath: /downloads
+                  subPath: arr-stack/downloads/torrents
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 16Mi
+                limits:
+                  cpu: 200m
+                  memory: 64Mi
+          volumes:
+            - name: nas
+              persistentVolumeClaim:
+                claimName: arr-nas-pvc

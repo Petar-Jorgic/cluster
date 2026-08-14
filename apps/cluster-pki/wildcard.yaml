@@ -21,6 +21,7 @@ spec:
     rotationPolicy: Always
   commonName: home-lab.lan
   dnsNames:
+    - '*.pj-home-lab.com'
     - adguard.lan
     - aniworld.lan
     - argocd.lan

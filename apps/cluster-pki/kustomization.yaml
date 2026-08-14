@@ -3,3 +3,5 @@ kind: Kustomization
 resources:
   - ca.yaml
   - wildcard.yaml
+  - cloudflare-token-sealed.yaml
+  - letsencrypt.yaml

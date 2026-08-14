@@ -21,7 +21,6 @@ spec:
     rotationPolicy: Always
   commonName: home-lab.lan
   dnsNames:
-    - '*.pj-home-lab.com'
     - adguard.lan
     - aniworld.lan
     - argocd.lan
@@ -74,3 +73,5 @@ metadata:
 spec:
   defaultCertificate:
     secretName: wildcard-lan-tls
+  certificates:
+    - secretName: wildcard-pj-tls

@@ -1,0 +1,45 @@
+# Let's Encrypt Wildcard-Zertifikat fuer *.pj-home-lab.com.
+#
+# DNS-01 Challenge ueber Cloudflare (Token liegt als SealedSecret in
+# cloudflare-token-sealed.yaml). Das Zertifikat landet als
+# wildcard-pj-tls in kube-system und wird im TLSStore (wildcard.yaml)
+# per SNI ausgeliefert — lokale Clients bekommen damit ein oeffentlich
+# gueltiges Zertifikat, ganz ohne CA-Installation.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-dns
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: jorgicpetar@gmail.com
+    privateKeySecretRef:
+      name: letsencrypt-dns-account-key
+    solvers:
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: cloudflare-api-token
+              key: api-token
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wildcard-pj
+  namespace: kube-system
+spec:
+  secretName: wildcard-pj-tls
+  duration: 2160h    # 90 Tage
+  renewBefore: 720h  # 30 Tage vorher erneuern
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+    rotationPolicy: Always
+  commonName: '*.pj-home-lab.com'
+  dnsNames:
+    - '*.pj-home-lab.com'
+    - pj-home-lab.com
+  issuerRef:
+    name: letsencrypt-dns
+    kind: ClusterIssuer
+    group: cert-manager.io

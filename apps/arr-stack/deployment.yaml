@@ -97,11 +97,11 @@ spec:
               mountPath: /dev/net/tun
           resources:
             requests:
-              cpu: 100m
+              cpu: 500m
               memory: 128Mi
             limits:
-              cpu: 500m
-              memory: 256Mi
+              cpu: 2000m
+              memory: 512Mi
 
         # qBittorrent - Torrent client (needs VPN)
         - name: qbittorrent

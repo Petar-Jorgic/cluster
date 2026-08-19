@@ -11,6 +11,8 @@ resources:
   - bindery.yaml
   - bazarr.yaml
   - jellyseerr.yaml
+  - decypharr.yaml
+  - decypharr-sealed-secret.yaml  # SealedSecret is git-safe -> ArgoCD-managed
   - services.yaml
   - ingress.yaml
   - pvc.yaml

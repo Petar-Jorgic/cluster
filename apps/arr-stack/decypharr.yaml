@@ -1,0 +1,124 @@
+# Decypharr (cy01/blackhole) — qBittorrent-API emulator backed by TorBox debrid.
+# Runs as its own Deployment with DIRECT network (NOT through the gluetun VPN pod):
+# TorBox is a clearnet debrid API (HTTPS), so no VPN is needed, and staying out of
+# the arr-stack pod avoids a Recreate-restart of the whole working stack on sync.
+#
+# Mode: download-to-local (default_download_action: "download") — files are pulled
+# fully onto the NAS and imported normally by Radarr/Sonarr. No symlink/webdav streaming.
+#
+# Paths mirror qBittorrent EXACTLY so imports hardlink like they do today:
+#   NAS subPath arr-stack/downloads/torrents -> /downloads (same as qbittorrent container)
+#   Radarr/Sonarr see the same dir via their /downloads symlink -> hardlink import, no copy.
+#
+# The TorBox API key is NEVER in this file. It is injected at runtime from the
+# torbox-api SealedSecret via env DECYPHARR_DEBRIDS__0__API_KEY (config.json stays keyless).
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: decypharr-config
+  labels:
+    app: decypharr
+data:
+  config.json: |
+    {
+      "log_level": "info",
+      "port": "8282",
+      "use_auth": false,
+      "download_folder": "/downloads",
+      "categories": ["radarr", "sonarr"],
+      "default_download_action": "download",
+      "debrids": [
+        {
+          "name": "torbox",
+          "provider": "torbox",
+          "download_uncached": true
+        }
+      ]
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: decypharr
+  labels:
+    app: decypharr
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: decypharr
+  template:
+    metadata:
+      labels:
+        app: decypharr
+    spec:
+      # Seed the git-managed config.json onto the writable /app volume each start.
+      # decypharr rewrites /app/config.json on Web-UI saves; seeding keeps git the
+      # source of truth. The API key is added in-memory from env, never written to git.
+      initContainers:
+        - name: seed-config
+          image: busybox:1.36
+          command: ["/bin/sh", "-c", "cp /seed/config.json /app/config.json"]
+          volumeMounts:
+            - name: seed
+              mountPath: /seed
+            - name: config
+              mountPath: /app
+              subPath: decypharr
+      containers:
+        - name: decypharr
+          image: cy01/blackhole:latest
+          ports:
+            - containerPort: 8282
+          env:
+            - name: PUID
+              value: "0"
+            - name: PGID
+              value: "0"
+            - name: TZ
+              value: "Europe/Berlin"
+            # Triggers the debrids[0] env override block; NAME must be set for API_KEY to apply.
+            - name: DECYPHARR_DEBRIDS__0__NAME
+              value: "torbox"
+            - name: DECYPHARR_DEBRIDS__0__API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: torbox-api
+                  key: api-key
+          volumeMounts:
+            - name: config
+              mountPath: /app
+              subPath: decypharr
+            - name: nas
+              mountPath: /downloads
+              subPath: arr-stack/downloads/torrents
+          readinessProbe:
+            exec:
+              command: ["/usr/bin/healthcheck", "--config", "/app"]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 8282
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+      volumes:
+        - name: seed
+          configMap:
+            name: decypharr-config
+        - name: config
+          persistentVolumeClaim:
+            claimName: arr-config-pvc
+        - name: nas
+          persistentVolumeClaim:
+            claimName: arr-nas-pvc

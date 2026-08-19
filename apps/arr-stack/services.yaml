@@ -135,3 +135,18 @@ spec:
     - port: 5055
       targetPort: 5055
       name: http
+---
+# Decypharr — qBittorrent-API emulator (TorBox download client for Radarr/Sonarr)
+apiVersion: v1
+kind: Service
+metadata:
+  name: decypharr
+  labels:
+    app: decypharr
+spec:
+  selector:
+    app: decypharr
+  ports:
+    - port: 8282
+      targetPort: 8282
+      name: http

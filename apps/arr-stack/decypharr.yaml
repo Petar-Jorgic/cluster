@@ -55,6 +55,10 @@ spec:
       labels:
         app: decypharr
     spec:
+      # The Service is named "decypharr", so k8s would inject the legacy service-link
+      # env var DECYPHARR_PORT=tcp://<clusterIP>:8282, which collides with decypharr's
+      # own DECYPHARR_PORT config override and breaks the HTTP listener. Disable them.
+      enableServiceLinks: false
       # Seed the git-managed config.json onto the writable /app volume each start.
       # decypharr rewrites /app/config.json on Web-UI saves; seeding keeps git the
       # source of truth. The API key is added in-memory from env, never written to git.

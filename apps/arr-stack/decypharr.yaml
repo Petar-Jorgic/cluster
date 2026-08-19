@@ -28,11 +28,14 @@ data:
       "download_folder": "/downloads",
       "categories": ["radarr", "sonarr"],
       "default_download_action": "download",
+      "max_active_downloads": 5,
       "debrids": [
         {
           "name": "torbox",
           "provider": "torbox",
-          "download_uncached": true
+          "download_uncached": true,
+          "rate_limit": "60/minute",
+          "download_rate_limit": "60/minute"
         }
       ]
     }

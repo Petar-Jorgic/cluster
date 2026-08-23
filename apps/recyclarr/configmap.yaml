@@ -44,9 +44,14 @@ data:
                 - name: HD-1080p
               exclude:
                 # Scores -10000 and would reject any non-original-language
-                # release, i.e. every German dub, which 'German' (+1000)
-                # cannot offset against min_format_score 0.
+                # release, i.e. every German dub. It is this group's only
+                # default CF, so the German entries below are opted in
+                # explicitly to keep the group meaningful.
                 - ae575f95ab639ba5d15f663bf019e3e8  # Language: Not Original
+              select:
+                - 8a9fcdbb445f2add0505926df3bb7b8a  # German
+                - ed51973a811f51985f14e2f6f290e47a  # German DL
+                - c5dd0fd675f85487ad5bdf97159180bd  # German DL (undefined)
             - trash_id: 85fae4a2294965b75710ef2989c850eb  # [Streaming Services] HD/UHD boost
               assign_scores_to:
                 - name: HD-1080p

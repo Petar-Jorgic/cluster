@@ -11,7 +11,13 @@
 #   Radarr/Sonarr see the same dir via their /downloads symlink -> hardlink import, no copy.
 #
 # The TorBox API key is NEVER in this file. It is injected at runtime from the
-# torbox-api SealedSecret via env DECYPHARR_DEBRIDS__0__API_KEY (config.json stays keyless).
+# torbox-api SealedSecret two ways (config.json in git stays keyless):
+#   - env DECYPHARR_DEBRIDS__0__API_KEY  -> the torrent list/submit client
+#   - __TORBOX_API_KEY__ placeholder     -> download_api_keys, substituted by the
+#     seed-config init container. decypharr's env-override block does NOT cover
+#     download_api_keys, so the env var alone leaves it as [""] -> one invalid
+#     account -> "all accounts are disabled" and every post-download link fetch
+#     fails while torrents still submit fine (silent, downloads just never land).
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -33,6 +39,7 @@ data:
         {
           "name": "torbox",
           "provider": "torbox",
+          "download_api_keys": ["__TORBOX_API_KEY__"],
           "download_uncached": true,
           "rate_limit": "30/minute",
           "download_rate_limit": "30/minute"
@@ -68,7 +75,16 @@ spec:
       initContainers:
         - name: seed-config
           image: busybox:1.36
-          command: ["/bin/sh", "-c", "cp /seed/config.json /app/config.json"]
+          command:
+            - /bin/sh
+            - -c
+            - sed "s|__TORBOX_API_KEY__|$TORBOX_API_KEY|g" /seed/config.json > /app/config.json
+          env:
+            - name: TORBOX_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: torbox-api
+                  key: api-key
           volumeMounts:
             - name: seed
               mountPath: /seed

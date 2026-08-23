@@ -16,7 +16,11 @@ data:
     yt-dlp --version
 
     MUSIC=/music
-    ARCHIVE="$MUSIC/.ytdlp-archive.txt"
+    # The archive lives on NFS, which intermittently returns EACCES and aborts
+    # yt-dlp before it starts. Work on a local copy and write it back at the end.
+    ARCHIVE=/tmp/ytdlp-archive.txt
+    NFS_ARCHIVE="$MUSIC/.ytdlp-archive.txt"
+    cp "$NFS_ARCHIVE" "$ARCHIVE" 2>/dev/null || : > "$ARCHIVE"
     mkdir -p "$MUSIC"
 
     sync_pl() {
@@ -36,6 +40,15 @@ data:
     sync_pl "all"  "https://music.youtube.com/playlist?list=PLEs08sUqN0Gh70tl0uguptMJ2zbhCnFmI"
     sync_pl "girl" "https://music.youtube.com/playlist?list=PLEs08sUqN0GgRB-Q2z31T6Vosll6eGDnD"
 
+    # write the archive back to NFS, retrying past transient EACCES
+    for i in 1 2 3 4 5; do
+      if cp "$ARCHIVE" "$NFS_ARCHIVE" 2>/dev/null; then
+        echo "[ytmusic-sync] archive saved ($(wc -l < "$ARCHIVE") entries)"; break
+      fi
+      echo "[ytmusic-sync] archive write failed (attempt $i), retrying..."; sleep 10
+      [ "$i" = 5 ] && echo "[ytmusic-sync] WARNING: could not persist archive; next run may re-download"
+    done
+
     echo "[ytmusic-sync] done. mp3 files in library:"
     find "$MUSIC" -type f -name '*.mp3' | wc -l
 ---
@@ -53,7 +66,7 @@ spec:
   failedJobsHistoryLimit: 2
   jobTemplate:
     spec:
-      backoffLimit: 1
+      backoffLimit: 3
       template:
         spec:
           restartPolicy: Never

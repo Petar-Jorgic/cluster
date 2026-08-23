@@ -25,3 +25,31 @@ spec:
     requests:
       storage: 100Gi
   volumeName: audiobookshelf-nfs-pv
+---
+# config (SQLite DB) and metadata (logs + cover cache) live on local disk, not NFS.
+# NFS is exported with insecure_locks, which is unsafe for SQLite, and small
+# high-frequency writes to /metadata intermittently failed with EACCES.
+# Media (audiobooks, podcasts) stays on the NAS.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: audiobookshelf-config
+  namespace: audiobookshelf
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: audiobookshelf-metadata
+  namespace: audiobookshelf
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi

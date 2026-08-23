@@ -29,15 +29,17 @@ spec:
             - name: TZ
               value: Europe/Berlin
           volumeMounts:
-            - name: data
+            # config (SQLite) + metadata (logs, cover cache) on local disk:
+            # NFS export uses insecure_locks (unsafe for SQLite) and small
+            # frequent writes to /metadata intermittently returned EACCES.
+            - name: config
               mountPath: /config
-              subPath: config
+            - name: metadata
+              mountPath: /metadata
+            # media stays on the NAS
             - name: data
               mountPath: /audiobooks
               subPath: audiobooks
-            - name: data
-              mountPath: /metadata
-              subPath: metadata
             - name: data
               mountPath: /podcasts
               subPath: podcasts
@@ -52,3 +54,9 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: audiobookshelf-data
+        - name: config
+          persistentVolumeClaim:
+            claimName: audiobookshelf-config
+        - name: metadata
+          persistentVolumeClaim:
+            claimName: audiobookshelf-metadata

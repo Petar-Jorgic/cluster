@@ -48,6 +48,33 @@ data:
             - trash_id: 59c3af66780d08332fdc64e68297098f  # [Unwanted] Unwanted Formats
               assign_scores_to:
                 - name: HD-1080p
+            - trash_id: d920fd959d220306888f40b6f38e1578  # [Optional] Season Packs
+              assign_scores_to:
+                - name: HD-1080p
+            - trash_id: f54985e5e96747cef58731f1cf4c9181  # [Streaming Services] Anime
+              assign_scores_to:
+                - name: HD-1080p
+            - trash_id: 35fb4585dcd9e2a5ac732e4309f5a45a  # [Streaming Services] Asian
+              assign_scores_to:
+                - name: HD-1080p
+            - trash_id: f60f4401ce880aad62e9d21c8bb6b91a  # [Streaming Services] Dutch
+              assign_scores_to:
+                - name: HD-1080p
+            - trash_id: 848fd356c200568fc5a6248150e7e7ea  # [Streaming Services] French
+              assign_scores_to:
+                - name: HD-1080p
+            - trash_id: ddab3095a5d2f436f369263840af34f9  # [Streaming Services] UK
+              assign_scores_to:
+                - name: HD-1080p
+            - trash_id: bad5bc85573a0134e1e1987c46f67e98  # [Optional] Accessibility
+              assign_scores_to:
+                - name: HD-1080p
+            - trash_id: f4a0410a1df109a66d6e47dcadcce014  # [Optional] Miscellaneous
+              assign_scores_to:
+                - name: HD-1080p
+            - trash_id: 7832db22b71ab669458c17a2850d6913  # [Streaming Services] Miscellaneous
+              assign_scores_to:
+                - name: HD-1080p
 
     radarr:
       radarr-main:
@@ -81,5 +108,32 @@ data:
               assign_scores_to:
                 - name: HD-1080p
             - trash_id: a3ac6af01d78e4f21fcb75f601ac96df  # [Unwanted] Unwanted Formats
+              assign_scores_to:
+                - name: HD-1080p
+            - trash_id: f993ad37540147e4d00e66503545d81b  # [Streaming Services] Anime
+              assign_scores_to:
+                - name: HD-1080p
+            - trash_id: b22449f789b16a4163b59f1b70cbc580  # [Streaming Services] Asian
+              assign_scores_to:
+                - name: HD-1080p
+            - trash_id: 088a792e0561c927fb396664b0db5c8f  # [Streaming Services] Dutch
+              assign_scores_to:
+                - name: HD-1080p
+            - trash_id: f737e18b5824d6ebb2d57b957ae2fd6c  # [Streaming Services] UK
+              assign_scores_to:
+                - name: HD-1080p
+            - trash_id: bc3c13e52f2971319bc1748ffa3d1078  # [Optional] Accessibility
+              assign_scores_to:
+                - name: HD-1080p
+            - trash_id: 13856622cf7a6c9925d3a83f8812d679  # [Optional] Language Profiles
+              assign_scores_to:
+                - name: HD-1080p
+            - trash_id: 9337080378236ce4c0b183e35790d2a7  # [Optional] Miscellaneous
+              assign_scores_to:
+                - name: HD-1080p
+            - trash_id: f4f1474b963b24cf983455743aa9906c  # [Optional] Movie Versions
+              assign_scores_to:
+                - name: HD-1080p
+            - trash_id: 9fc645b3cef52b149ec13ba3972245d1  # [Streaming Services] Miscellaneous
               assign_scores_to:
                 - name: HD-1080p

@@ -32,7 +32,7 @@ spec:
                   mountPath: /config
           containers:
             - name: recyclarr
-              image: ghcr.io/recyclarr/recyclarr:7
+              image: ghcr.io/recyclarr/recyclarr:8
               args: ["sync"]
               env:
                 - name: TZ

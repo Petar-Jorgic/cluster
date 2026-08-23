@@ -131,10 +131,13 @@ spec:
           resources:
             requests:
               cpu: 50m
-              memory: 128Mi
+              memory: 256Mi
             limits:
               cpu: 1000m
-              memory: 1Gi
+              # NFS writeback page cache is charged to this cgroup. With
+              # max_active_downloads at 10, dirty pages outran writeback and
+              # OOM-killed the container at 1Gi while its own heap was ~40Mi.
+              memory: 3Gi
       volumes:
         - name: seed
           configMap:

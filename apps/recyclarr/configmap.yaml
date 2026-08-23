@@ -117,15 +117,15 @@ data:
                 - fe4062eac43d4ea75955f8ae48adcf1e  # STRP
 
 
-    # Recyclarr previously scored this CF at -10000 and then stopped managing
-    # it, leaving the score stranded on the profile. Manage it explicitly at 0
-    # so the profile is neutral without deleting the format itself.
-    custom_formats:
-      - trash_ids:
-          - ae575f95ab639ba5d15f663bf019e3e8  # Language: Not Original
-        assign_scores_to:
-          - name: HD-1080p
-            score: 0
+        # Recyclarr previously scored this CF at -10000 and then stopped
+        # managing it, leaving the score stranded on the profile. Manage it
+        # explicitly at 0 so the profile is neutral without deleting the format.
+        custom_formats:
+          - trash_ids:
+              - ae575f95ab639ba5d15f663bf019e3e8  # Language: Not Original
+            assign_scores_to:
+              - name: HD-1080p
+                score: 0
     radarr:
       radarr-main:
         base_url: http://radarr.arr-stack.svc.cluster.local:7878

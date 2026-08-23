@@ -42,6 +42,11 @@ data:
             - trash_id: 74aff4168620ed49dcc67e92b2c2a5b4  # [Optional] Language Profiles
               assign_scores_to:
                 - name: HD-1080p
+              exclude:
+                # Scores -10000 and would reject any non-original-language
+                # release, i.e. every German dub, which 'German' (+1000)
+                # cannot offset against min_format_score 0.
+                - ae575f95ab639ba5d15f663bf019e3e8  # Language: Not Original
             - trash_id: 85fae4a2294965b75710ef2989c850eb  # [Streaming Services] HD/UHD boost
               assign_scores_to:
                 - name: HD-1080p

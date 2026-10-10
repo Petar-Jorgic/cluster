@@ -30,6 +30,7 @@ resources:
   - speedtest-tracker.yaml
   - recyclarr.yaml
   - trailarr.yaml
+  - alertmanager-gotify.yaml
   - cluster-cleanup.yaml
   - ytmusic-sync.yaml
   - minio.yaml

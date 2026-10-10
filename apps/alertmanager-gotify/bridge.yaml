@@ -1,0 +1,49 @@
+# Alertmanager kann nicht direkt an Gotify senden; diese Bruecke uebersetzt
+# den Alertmanager-Webhook in Gotify-Nachrichten.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alertmanager-gotify-bridge
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alertmanager-gotify-bridge
+  template:
+    metadata:
+      labels:
+        app: alertmanager-gotify-bridge
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: bridge
+          image: druggeri/alertmanager_gotify_bridge:2.3.2
+          env:
+            - name: GOTIFY_ENDPOINT
+              value: http://gotify.gotify.svc:80/message
+            - name: GOTIFY_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: alertmanager-gotify
+                  key: GOTIFY_TOKEN
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: 5m
+              memory: 16Mi
+            limits:
+              memory: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager-gotify-bridge
+  namespace: monitoring
+spec:
+  selector:
+    app: alertmanager-gotify-bridge
+  ports:
+    - port: 8080
+      targetPort: 8080

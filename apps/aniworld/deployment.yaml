@@ -30,9 +30,10 @@ spec:
             - name: TZ
               value: Europe/Berlin
           volumeMounts:
-            - name: data
+            # Downloads landen direkt in Sonarrs/Jellyfins Anime-Ordner auf dem NAS
+            - name: anime
               mountPath: /app/downloads
-              subPath: downloads
+              subPath: arr/Plex/Anime/Series
             - name: data
               mountPath: /app/data
               subPath: data
@@ -47,6 +48,10 @@ spec:
               cpu: 1000m
               memory: 1Gi
       volumes:
+        - name: anime
+          nfs:
+            server: 192.168.1.162
+            path: /volume1/docker
         - name: data
           persistentVolumeClaim:
             claimName: aniworld-data

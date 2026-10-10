@@ -82,6 +82,15 @@ nodeExporter:
       memory: 64Mi
 
 prometheus:
+  # LAN only: Prometheus has no authentication, never add a public host here.
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hosts:
+      - prometheus.lan
+    annotations:
+      traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+      traefik.ingress.kubernetes.io/router.tls: "true"
   prometheusSpec:
     retention: 30d
     storageSpec:

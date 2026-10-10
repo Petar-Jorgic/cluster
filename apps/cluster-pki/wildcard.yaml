@@ -44,6 +44,7 @@ spec:
     - minio.lan
     - obsidian.lan
     - omni.lan
+    - prometheus.lan
     - prowlarr.lan
     - qbittorrent.lan
     - radarr.lan

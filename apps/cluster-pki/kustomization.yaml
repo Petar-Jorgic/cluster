@@ -5,3 +5,4 @@ resources:
   - wildcard.yaml
   - cloudflare-token-sealed.yaml
   - letsencrypt.yaml
+  - lan-https-redirect.yaml

@@ -49,7 +49,9 @@ spec:
     - qbittorrent.lan
     - radarr.lan
     - readarr.lan
+    - romm.lan
     - s3.lan
+    - seelenpost.lan
     - semaphore.lan
     - sonarr.lan
     - speedtest.lan

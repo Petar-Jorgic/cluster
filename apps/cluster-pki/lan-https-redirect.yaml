@@ -1,0 +1,33 @@
+# Leitet http://<irgendwas>.lan auf https um.
+#
+# Nur .lan: Pangolin liefert *.pj-home-lab.com per HTTP an Traefik,
+# ein globaler Redirect am web-Entrypoint wuerde dort eine Schleife bauen.
+# Hohe Prioritaet, damit dieser Router vor den Host()-Regeln der
+# einzelnen Ingresses greift. 308 statt 301, damit POST/PUT erhalten bleiben.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: lan-https-redirect
+  namespace: kube-system
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: lan-https-redirect
+  namespace: kube-system
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: HostRegexp(`^.+\.lan$`)
+      kind: Rule
+      priority: 10000
+      middlewares:
+        - name: lan-https-redirect
+      services:
+        - kind: TraefikService
+          name: noop@internal

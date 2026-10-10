@@ -32,6 +32,7 @@ resources:
   - trailarr.yaml
   - alertmanager-gotify.yaml
   - cluster-cleanup.yaml
+  - firefly.yaml
   - pocket-id.yaml
   - ytmusic-sync.yaml
   - minio.yaml

@@ -32,6 +32,8 @@ spec:
     - changes.lan
     - claude.lan
     - element.lan
+    - firefly.lan
+    - firefly-import.lan
     - gotify.lan
     - grafana.lan
     - headlamp.lan

@@ -1,0 +1,197 @@
+# Firefly III (Haushaltsbuch) mit SQLite + Data Importer fuer Bankanbindung.
+# Zunaechst nur im LAN: der erste Besucher registriert sich als Besitzer.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: firefly-data
+  namespace: firefly
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: firefly
+  namespace: firefly
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: firefly
+  template:
+    metadata:
+      labels:
+        app: firefly
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: pj
+      enableServiceLinks: false
+      initContainers:
+        - name: init-sqlite
+          image: busybox:1.37
+          command: ["sh", "-c", "mkdir -p /data/database /data/upload && touch /data/database/database.sqlite && chown -R 33:33 /data"]
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      containers:
+        - name: firefly
+          image: fireflyiii/core:version-6
+          env:
+            - name: APP_URL
+              value: https://firefly.lan
+            - name: TRUSTED_PROXIES
+              value: "**"
+            - name: DB_CONNECTION
+              value: sqlite
+            - name: TZ
+              value: Europe/Berlin
+            - name: DEFAULT_LANGUAGE
+              value: de_DE
+            - name: DEFAULT_LOCALE
+              value: equal
+            - name: APP_KEY
+              valueFrom:
+                secretKeyRef: {name: firefly, key: APP_KEY}
+            - name: STATIC_CRON_TOKEN
+              valueFrom:
+                secretKeyRef: {name: firefly, key: STATIC_CRON_TOKEN}
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: data
+              mountPath: /var/www/html/storage/database
+              subPath: database
+            - name: data
+              mountPath: /var/www/html/storage/upload
+              subPath: upload
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 20
+          resources:
+            requests:
+              cpu: 20m
+              memory: 192Mi
+            limits:
+              memory: 512Mi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: firefly-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: firefly
+  namespace: firefly
+spec:
+  selector:
+    app: firefly
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: firefly-importer
+  namespace: firefly
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: firefly-importer
+  template:
+    metadata:
+      labels:
+        app: firefly-importer
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: importer
+          image: fireflyiii/data-importer:latest
+          env:
+            - name: FIREFLY_III_URL
+              value: http://firefly.firefly.svc:8080
+            - name: VANITY_URL
+              value: https://firefly.lan
+            - name: TRUSTED_PROXIES
+              value: "**"
+            - name: TZ
+              value: Europe/Berlin
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: 10m
+              memory: 96Mi
+            limits:
+              memory: 384Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: firefly-importer
+  namespace: firefly
+spec:
+  selector:
+    app: firefly-importer
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+# Firefly braucht einen taeglichen Cron-Aufruf (wiederkehrende Buchungen, Budgets)
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: firefly-cron
+  namespace: firefly
+spec:
+  schedule: "0 3 * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: cron
+              image: curlimages/curl:8.11.1
+              env:
+                - name: STATIC_CRON_TOKEN
+                  valueFrom:
+                    secretKeyRef: {name: firefly, key: STATIC_CRON_TOKEN}
+              command: ["sh", "-c", "curl -fsS http://firefly.firefly.svc:8080/api/v1/cron/$STATIC_CRON_TOKEN"]
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: firefly
+  namespace: firefly
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: firefly.lan
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: {name: firefly, port: {number: 8080}}
+    - host: firefly-import.lan
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: {name: firefly-importer, port: {number: 8080}}

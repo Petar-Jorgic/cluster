@@ -29,7 +29,10 @@ spec:
             - name: TZ
               value: Europe/Berlin
             - name: SECRET_ENCRYPTION_KEY
-              value: d045943d82c3d999daabb71167665c7960d2ccab787d9091ca80020b5e49c024
+              valueFrom:
+                secretKeyRef:
+                  name: homarr-encryption
+                  key: SECRET_ENCRYPTION_KEY
           volumeMounts:
             - name: data
               mountPath: /appdata

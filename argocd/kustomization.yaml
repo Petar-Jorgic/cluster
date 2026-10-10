@@ -32,7 +32,6 @@ resources:
   - trailarr.yaml
   - cluster-cleanup.yaml
   - ytmusic-sync.yaml
-  - dasharr.yaml
   - minio.yaml
   - cm-fetcher.yaml
   - obsidian-livesync.yaml

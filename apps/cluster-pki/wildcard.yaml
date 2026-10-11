@@ -42,6 +42,7 @@ spec:
     - jellyfin.lan
     - jellyseerr.lan
     - matrix.lan
+    - metube.lan
     - miniflux.lan
     - minio.lan
     - obsidian.lan

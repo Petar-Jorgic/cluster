@@ -1,0 +1,101 @@
+# MeTube (yt-dlp Web-UI). Audio als m4a (AAC) landet direkt in der
+# Jellyfin-Musikbibliothek. Kein eigener Login -> nur im LAN.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metube
+  namespace: metube
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: metube
+  template:
+    metadata:
+      labels:
+        app: metube
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: pj
+      enableServiceLinks: false
+      containers:
+        - name: metube
+          image: ghcr.io/alexta69/metube:latest
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: CHOWN_DIRS
+              value: "false"
+            - name: DOWNLOAD_DIR
+              value: /downloads
+            - name: AUDIO_DOWNLOAD_DIR
+              value: /music
+            - name: STATE_DIR
+              value: /downloads/.metube
+            - name: TEMP_DIR
+              value: /downloads/.tmp
+            - name: DEFAULT_THEME
+              value: auto
+            - name: TZ
+              value: Europe/Berlin
+            # Titel/Interpret/Cover in die Dateien schreiben (auch fuer m4a)
+            - name: YTDL_OPTIONS
+              value: '{"writethumbnail": true, "postprocessors": [{"key": "FFmpegMetadata", "add_metadata": true}, {"key": "EmbedThumbnail"}]}'
+          ports:
+            - containerPort: 8081
+          volumeMounts:
+            - name: nas
+              mountPath: /downloads
+              subPath: metube
+            - name: nas
+              mountPath: /music
+              subPath: arr/Plex/Music/MeTube
+          readinessProbe:
+            tcpSocket:
+              port: 8081
+          resources:
+            requests:
+              cpu: 20m
+              memory: 128Mi
+            limits:
+              memory: 1Gi
+      volumes:
+        - name: nas
+          nfs:
+            server: 192.168.1.162
+            path: /volume1/docker
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: metube
+  namespace: metube
+spec:
+  selector:
+    app: metube
+  ports:
+    - port: 8081
+      targetPort: 8081
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: metube
+  namespace: metube
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: metube.lan
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: {name: metube, port: {number: 8081}}

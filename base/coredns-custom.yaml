@@ -1,0 +1,15 @@
+# Cluster-Pods sollen *.pj-home-lab.com intern aufloesen (AdGuard -> Traefik
+# im Cluster mit Let's-Encrypt-Wildcard), nicht ueber den VPS, der nur einen
+# Teil der Hosts veroeffentlicht. Noetig z.B. fuer OIDC gegen id.pj-home-lab.com.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns-custom
+  namespace: kube-system
+data:
+  pj-home-lab.server: |
+    pj-home-lab.com:53 {
+        errors
+        cache 30
+        forward . 192.168.1.20
+    }

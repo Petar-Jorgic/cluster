@@ -27,7 +27,8 @@ alertmanager:
       - name: gotify
         webhook_configs:
           - url: http://alertmanager-gotify-bridge.monitoring.svc:8080/gotify_webhook
-            send_resolved: true
+            # Bridge zeigt Entwarnungen identisch zum Alarm an -> nur echte Alarme schicken
+            send_resolved: false
 
 # k3s hat diese Komponenten nicht als separate Pods
 kubeControllerManager:

@@ -31,8 +31,15 @@ spec:
                   value: /home/aniworld/.local/lib/python3.13/site-packages
                 - name: SERIES
                   value: https://aniworld.to/anime/stream/one-piece
-              command: ["sh", "-c", "pip install -q --upgrade aniworld && aniworld --no-menu --action Download --language 'German Dub' --provider VOE --output /app/downloads $SERIES"]
+                - name: GOTIFY_URL
+                  value: http://gotify.gotify.svc:80
+                - name: GOTIFY_TOKEN
+                  valueFrom:
+                    secretKeyRef: {name: aniworld-gotify, key: GOTIFY_TOKEN}
+              command: ["sh", "/scripts/run.sh"]
               volumeMounts:
+                - name: script
+                  mountPath: /scripts
                 - name: anime
                   mountPath: /app/downloads
                   subPath: arr/Plex/Anime/Series
@@ -46,6 +53,9 @@ spec:
                 limits:
                   memory: 1Gi
           volumes:
+            - name: script
+              configMap:
+                name: aniworld-dub-script
             - name: anime
               nfs:
                 server: 192.168.1.162

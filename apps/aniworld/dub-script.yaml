@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aniworld-dub-script
+  namespace: aniworld
+data:
+  run.sh: |
+    #!/bin/sh
+    # Laedt alle German-Dub-Folgen von $SERIES und meldet das Ergebnis an Gotify.
+    pip install -q --upgrade aniworld 2>/dev/null
+    touch /tmp/start
+    aniworld --no-menu --action Download --language 'German Dub' --provider VOE \
+      --output /app/downloads $SERIES > /tmp/log 2>&1
+    rc=$?
+    tail -n 50 /tmp/log
+    find /app/downloads -name '*.mkv' -newer /tmp/start | sed 's#.*/##' | sort > /tmp/new
+    python3 - <<'PY'
+    import json, os, re, urllib.request
+    new = [l for l in open("/tmp/new").read().splitlines() if l]
+    log = open("/tmp/log", errors="ignore").read()
+    nodub = len(re.findall(r"German Dub' with provider '[^']+' is not available", log))
+    failed = len(re.findall(r"Download failed for all providers", log)) - nodub
+    title = f"Aniworld: {len(new)} neue Folge(n)"
+    lines = new[:25] + ([f"... und {len(new)-25} weitere"] if len(new) > 25 else [])
+    msg = "\n".join(lines) if lines else "Keine neuen Folgen."
+    msg += f"\n\nNoch ohne deutsche Synchro: {nodub}"
+    if failed > 0:
+        msg += f"\nFehlgeschlagen (Anbieter-Problem): {failed}"
+    req = urllib.request.Request(
+        os.environ["GOTIFY_URL"] + "/message",
+        data=json.dumps({"title": title, "message": msg, "priority": 5}).encode(),
+        headers={"Content-Type": "application/json", "X-Gotify-Key": os.environ["GOTIFY_TOKEN"]})
+    print("gotify:", urllib.request.urlopen(req, timeout=15).status, title)
+    PY
+    exit $rc

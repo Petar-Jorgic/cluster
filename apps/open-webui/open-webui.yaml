@@ -58,6 +58,10 @@ spec:
               value: openid email profile
             - name: TZ
               value: Europe/Berlin
+            # Mac-Ollama (192.168.1.43) ist oft aus: Modellliste nicht lange blockieren.
+            # Die Ollama-Verbindungen selbst stehen in der Open-WebUI-DB (Admin > Verbindungen).
+            - name: AIOHTTP_CLIENT_TIMEOUT_MODEL_LIST
+              value: "3"
           envFrom:
             - secretRef:
                 name: open-webui

@@ -29,6 +29,10 @@ spec:
           env:
             - name: TZ
               value: Europe/Berlin
+            # pip installiert nach ~/.local (venv ist read-only); ohne diesen Pfad
+            # sieht das venv weder authlib noch das per pip aktualisierte aniworld
+            - name: PYTHONPATH
+              value: /home/aniworld/.local/lib/python3.13/site-packages
             # Login nur ueber Pocket ID (SSO); Weboberflaeche ist auch oeffentlich erreichbar
             - name: ANIWORLD_OIDC_ISSUER_URL
               value: https://id.pj-home-lab.com

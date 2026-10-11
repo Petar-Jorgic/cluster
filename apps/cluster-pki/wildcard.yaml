@@ -30,6 +30,7 @@ spec:
     - card-sniper.lan
     - cardsniper-preview.lan
     - changes.lan
+    - chat.lan
     - claude.lan
     - element.lan
     - firefly.lan

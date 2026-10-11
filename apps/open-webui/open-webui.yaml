@@ -1,0 +1,115 @@
+# Open WebUI: Chat-Oberflaeche fuer das Ollama im Cluster. Login nur ueber
+# Pocket ID (Passkey); der erste Login wird Admin. Nur im LAN (chat.lan).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: open-webui-data
+  namespace: open-webui
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: open-webui
+  namespace: open-webui
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: open-webui
+  template:
+    metadata:
+      labels:
+        app: open-webui
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: pj
+      enableServiceLinks: false
+      containers:
+        - name: open-webui
+          image: ghcr.io/open-webui/open-webui:main
+          env:
+            - name: OLLAMA_BASE_URL
+              value: http://ollama.ollama.svc:11434
+            - name: WEBUI_URL
+              value: https://chat.lan
+            - name: ENABLE_SIGNUP
+              value: "false"
+            - name: ENABLE_LOGIN_FORM
+              value: "false"
+            - name: ENABLE_OAUTH_SIGNUP
+              value: "true"
+            - name: OAUTH_MERGE_ACCOUNTS_BY_EMAIL
+              value: "true"
+            - name: OAUTH_PROVIDER_NAME
+              value: Pocket ID
+            - name: OPENID_PROVIDER_URL
+              value: https://id.pj-home-lab.com/.well-known/openid-configuration
+            - name: OPENID_REDIRECT_URI
+              value: https://chat.lan/oauth/oidc/callback
+            - name: OAUTH_SCOPES
+              value: openid email profile
+            - name: TZ
+              value: Europe/Berlin
+          envFrom:
+            - secretRef:
+                name: open-webui
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: data
+              mountPath: /app/backend/data
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: 50m
+              memory: 512Mi
+            limits:
+              memory: 3Gi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: open-webui-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: open-webui
+  namespace: open-webui
+spec:
+  selector:
+    app: open-webui
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: open-webui
+  namespace: open-webui
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: chat.lan
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: {name: open-webui, port: {number: 8080}}

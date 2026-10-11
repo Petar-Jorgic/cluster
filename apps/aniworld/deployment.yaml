@@ -23,12 +23,25 @@ spec:
       containers:
         - name: aniworld
           image: ghcr.io/phoenixthrush/aniworld-downloader:latest
-          command: ["sh", "-c", "pip install --upgrade aniworld && aniworld --web-ui --web-expose --web-port 8080 -o /app/downloads"]
+          command: ["sh", "-c", "pip install --upgrade aniworld && aniworld --web-ui --web-expose --web-port 8080 --web-force-sso -o /app/downloads"]
           ports:
             - containerPort: 8080
           env:
             - name: TZ
               value: Europe/Berlin
+            # Login nur ueber Pocket ID (SSO); Weboberflaeche ist auch oeffentlich erreichbar
+            - name: ANIWORLD_OIDC_ISSUER_URL
+              value: https://id.pj-home-lab.com
+            - name: ANIWORLD_OIDC_DISPLAY_NAME
+              value: Pocket ID
+            - name: ANIWORLD_OIDC_ADMIN_USER
+              value: petar
+            # Traefik setzt X-Forwarded-Proto, damit die Callback-URL https ist
+            - name: ANIWORLD_WEB_TRUSTED_PROXY
+              value: "*"
+          envFrom:
+            - secretRef:
+                name: aniworld-oidc
           volumeMounts:
             # Downloads landen direkt in Sonarrs/Jellyfins Anime-Ordner auf dem NAS
             - name: anime

@@ -94,27 +94,18 @@ spec:
                 name: jellyseerr
                 port:
                   number: 5055
-    # Readarr
-    - host: readarr.lan
+    # Pangolin nutzt diesen Namen fuer die Resource; im LAN loest das Wildcard
+    # ueber AdGuard auf den Cluster auf -> ohne Regel gab es hier einen 404.
+    - host: jellyseerr.pj-home-lab.com
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: readarr
+                name: jellyseerr
                 port:
-                  number: 8787
-    - host: readarr.pj-home-lab.com
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: readarr
-                port:
-                  number: 8787
+                  number: 5055
     # Bindery (modern Readarr replacement)
     - host: bindery.lan
       http:

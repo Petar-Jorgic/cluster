@@ -147,6 +147,19 @@ spec:
                 name: qbittorrent
                 port:
                   number: 8080
+    # Externer Host fuer die Pangolin-Resource auf dem VPS. Zugriffsschutz
+    # liegt bei Pangolin (Resource-Auth), qBittorrent selbst hat zusaetzlich
+    # Host-Header-Pruefung + CSRF-Schutz aktiv.
+    - host: qbit.pj-home-lab.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: qbittorrent
+                port:
+                  number: 8080
     # Bazarr
     - host: bazarr.lan
       http:

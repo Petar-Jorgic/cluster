@@ -11,6 +11,23 @@ spec:
     requests:
       storage: 10Gi
 ---
+# /romm/config lag bis 25.10.2026 auf der NFS-Freigabe (romm-assets, subPath
+# config). Der NFS-Client cachte dort ein "permission denied", /api/heartbeat
+# lieferte dauerhaft 500 und der Pod blieb 93 Tage nicht ready. config.yml ist
+# eine lokale Datei von wenigen Bytes und gehoert nicht aufs NAS.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: romm-config
+  namespace: romm
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -74,9 +91,8 @@ spec:
             - name: assets
               mountPath: /romm/assets
               subPath: assets
-            - name: assets
+            - name: config
               mountPath: /romm/config
-              subPath: config
             - name: resources
               mountPath: /romm/resources
             - name: redis-data
@@ -87,6 +103,8 @@ spec:
               port: 8080
             initialDelaySeconds: 20
             periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 6
           resources:
             requests:
               cpu: 100m
@@ -100,6 +118,9 @@ spec:
         - name: assets
           persistentVolumeClaim:
             claimName: romm-assets
+        - name: config
+          persistentVolumeClaim:
+            claimName: romm-config
         - name: resources
           persistentVolumeClaim:
             claimName: romm-resources

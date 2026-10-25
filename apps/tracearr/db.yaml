@@ -21,6 +21,19 @@ spec:
         kubernetes.io/hostname: pj
       securityContext:
         fsGroup: 1000
+      # Das HA-Image wartet darauf, dass das Datenverzeichnis 1000:1000 gehoert
+      # ("Waiting for permissions on /home/postgres/pgdata/data (0:1000 ->
+      # 1000:1000)"). fsGroup setzt nur die Gruppe, initdb scheitert dann mit
+      # "could not change permissions of directory". Also einmal chown.
+      initContainers:
+        - name: fix-permissions
+          image: busybox:1.37
+          command: ["sh", "-c", "chown -R 1000:1000 /home/postgres/pgdata/data"]
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: data
+              mountPath: /home/postgres/pgdata/data
       containers:
         - name: timescaledb
           # TimescaleDB-HA, weil Tracearr die Erweiterungen timescaledb,

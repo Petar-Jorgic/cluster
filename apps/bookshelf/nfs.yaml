@@ -1,0 +1,43 @@
+# Buecher und Downloads liegen auf derselben NAS-Freigabe wie arr-stack,
+# damit Importe im selben Dateisystem bleiben.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: bookshelf-nas-pv
+spec:
+  capacity:
+    storage: 500Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-bookshelf
+  nfs:
+    server: 192.168.1.162
+    path: /volume1/docker
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: bookshelf-nas
+  namespace: bookshelf
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs-bookshelf
+  resources:
+    requests:
+      storage: 500Gi
+  volumeName: bookshelf-nas-pv
+---
+# /config haelt die SQLite-Datenbank (Readarr-Abstammung) -> lokale Platte.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: bookshelf-config
+  namespace: bookshelf
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 2Gi

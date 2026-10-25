@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tracearr-db
+  labels:
+    app.kubernetes.io/name: tracearr-db
+    app.kubernetes.io/part-of: tracearr
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: tracearr-db
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: tracearr-db
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: pj
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: timescaledb
+          # TimescaleDB-HA, weil Tracearr die Erweiterungen timescaledb,
+          # timescaledb_toolkit und pg_trgm braucht. Version gepinnt wie im
+          # Upstream-Compose.
+          image: timescale/timescaledb-ha:pg18.4-ts2.29.1
+          args:
+            - postgres
+            - -c
+            - timescaledb.license=timescale
+            - -c
+            - timescaledb.max_tuples_decompressed_per_dml_transaction=100000
+            - -c
+            - max_locks_per_transaction=4096
+            - -c
+            - timescaledb.telemetry_level=off
+            - -c
+            - max_connections=150
+          env:
+            - name: POSTGRES_USER
+              value: tracearr
+            - name: POSTGRES_DB
+              value: tracearr
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: tracearr-secrets
+                  key: DB_PASSWORD
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: data
+              mountPath: /home/postgres/pgdata/data
+            - name: dshm
+              mountPath: /dev/shm
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "tracearr"]
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 5
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              memory: 2Gi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: tracearr-db-data
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tracearr-db
+  labels:
+    app.kubernetes.io/part-of: tracearr
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5432
+      targetPort: 5432
+  selector:
+    app.kubernetes.io/name: tracearr-db

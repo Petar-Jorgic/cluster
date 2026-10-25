@@ -1,0 +1,33 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: listenarr
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: listenarr
+    app.kubernetes.io/part-of: listenarr
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: listenarr.lan
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: listenarr
+                port:
+                  number: 4545
+    - host: listenarr.pj-home-lab.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: listenarr
+                port:
+                  number: 4545

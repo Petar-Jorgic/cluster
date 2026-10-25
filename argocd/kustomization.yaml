@@ -43,3 +43,6 @@ resources:
   - cert-manager.yaml
   - cluster-pki.yaml
   - romm.yaml
+  - listenarr.yaml
+  - bookshelf.yaml
+  - tracearr.yaml

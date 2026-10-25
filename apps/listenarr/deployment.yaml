@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: listenarr
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: listenarr
+    app.kubernetes.io/part-of: listenarr
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: listenarr
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: listenarr
+    spec:
+      # local-path-PVC bindet node-lokal
+      nodeSelector:
+        kubernetes.io/hostname: pj
+      containers:
+        - name: listenarr
+          # stable/latest existiert laut Projekt noch nicht, canary ist der
+          # empfohlene Tag. Beta-Software: Konfiguration regelmaessig sichern.
+          image: ghcr.io/listenarrs/listenarr:canary
+          ports:
+            - containerPort: 4545
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: UMASK
+              value: "022"
+            - name: TZ
+              value: Europe/Vienna
+            - name: LISTENARR_PUBLIC_URL
+              value: https://listenarr.pj-home-lab.com
+            - name: LISTENARR_LOG_LEVEL
+              value: Information
+          volumeMounts:
+            - name: config
+              mountPath: /app/config
+            - name: nas
+              mountPath: /audiobooks
+              subPath: audiobookshelf/audiobooks
+            - name: nas
+              mountPath: /downloads
+              subPath: arr-stack/downloads/torrents
+          resources:
+            requests:
+              cpu: 50m
+              memory: 192Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: listenarr-config
+        - name: nas
+          persistentVolumeClaim:
+            claimName: listenarr-nas

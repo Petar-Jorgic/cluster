@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tracearr
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: tracearr
+    app.kubernetes.io/part-of: tracearr
+spec:
+  # Muss 1 bleiben: Tracearr pollt die Medienserver als Singleton.
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: tracearr
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: tracearr
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: pj
+      # Das Image laeuft fest als UID 1001 und ignoriert PUID/PGID.
+      securityContext:
+        fsGroup: 1001
+      containers:
+        - name: tracearr
+          image: ghcr.io/connorgallopo/tracearr:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: HOST
+              value: 0.0.0.0
+            - name: TZ
+              value: Europe/Vienna
+            - name: LOG_LEVEL
+              value: info
+            # Hinter Traefik: eine Proxy-Stufe vertrauen, damit Client-IPs
+            # und die Geo-Erkennung stimmen.
+            - name: TRUST_PROXY
+              value: "true"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: tracearr-secrets
+                  key: DB_PASSWORD
+            # $(DB_PASSWORD) wird von Kubernetes aus der Variablen oben ersetzt.
+            - name: DATABASE_URL
+              value: postgres://tracearr:$(DB_PASSWORD)@tracearr-db:5432/tracearr
+            - name: REDIS_URL
+              value: redis://tracearr-redis:6379
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: tracearr-secrets
+                  key: JWT_SECRET
+            - name: COOKIE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: tracearr-secrets
+                  key: COOKIE_SECRET
+          volumeMounts:
+            - name: backups
+              mountPath: /data/backup
+            - name: images
+              mountPath: /data/tracearr/image-cache
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 1Gi
+      volumes:
+        - name: backups
+          persistentVolumeClaim:
+            claimName: tracearr-backups
+        - name: images
+          persistentVolumeClaim:
+            claimName: tracearr-images

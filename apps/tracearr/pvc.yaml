@@ -1,0 +1,49 @@
+# Alles auf lokaler Platte: TimescaleDB und Redis vertragen kein NFS mit
+# insecure_locks, der Bildcache sind viele kleine Dateien.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tracearr-db-data
+  namespace: tracearr
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tracearr-redis-data
+  namespace: tracearr
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tracearr-backups
+  namespace: tracearr
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tracearr-images
+  namespace: tracearr
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi

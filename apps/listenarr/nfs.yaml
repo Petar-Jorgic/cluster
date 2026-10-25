@@ -1,0 +1,45 @@
+# Medien vom NAS (gleiche Freigabe wie arr-stack/audiobookshelf), damit Importe
+# ohne Kopieren ueber Dateisystemgrenzen laufen.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: listenarr-nas-pv
+spec:
+  capacity:
+    storage: 500Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-listenarr
+  nfs:
+    server: 192.168.1.162
+    path: /volume1/docker
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: listenarr-nas
+  namespace: listenarr
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs-listenarr
+  resources:
+    requests:
+      storage: 500Gi
+  volumeName: listenarr-nas-pv
+---
+# /app/config enthaelt die SQLite-Datenbank. Die NFS-Freigabe exportiert mit
+# insecure_locks, das ist fuer SQLite unsicher -> lokale Platte (wie bei
+# audiobookshelf und romm).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: listenarr-config
+  namespace: listenarr
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 2Gi

@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bookshelf
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: bookshelf
+    app.kubernetes.io/part-of: bookshelf
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: bookshelf
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: bookshelf
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: pj
+      containers:
+        - name: bookshelf
+          # Readarr-Fork. Tag "hardcover" = Metadaten von Hardcover, nicht
+          # kompatibel mit einer bestehenden Readarr-Datenbank.
+          # "softcover" waere Goodreads und Readarr-kompatibel.
+          image: ghcr.io/pennydreadful/bookshelf:hardcover
+          ports:
+            - containerPort: 8787
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: Europe/Vienna
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: nas
+              mountPath: /books
+              subPath: readarr/books
+            - name: nas
+              mountPath: /downloads
+              subPath: arr-stack/downloads/torrents
+          resources:
+            requests:
+              cpu: 50m
+              memory: 192Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: bookshelf-config
+        - name: nas
+          persistentVolumeClaim:
+            claimName: bookshelf-nas

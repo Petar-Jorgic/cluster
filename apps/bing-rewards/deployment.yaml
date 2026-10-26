@@ -56,8 +56,12 @@ spec:
             - name: CONFIG_CLUSTERS
               value: "1"
           volumeMounts:
+            # Das Image hat seinen Pfad geaendert: die App liegt jetzt unter
+            # /usr/src/microsoft-rewards-script und bringt kein config-Verzeichnis
+            # mehr mit. Beim Start schreibt config-sync dort hinein, ohne Mount
+            # bricht es mit ENOENT ab.
             - name: data
-              mountPath: /app/config
+              mountPath: /usr/src/microsoft-rewards-script/config
           resources:
             requests:
               cpu: 50m

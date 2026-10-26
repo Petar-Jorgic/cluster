@@ -69,7 +69,7 @@ spec:
       enableServiceLinks: false
       containers:
         - name: romm
-          image: rommapp/romm:5.0.0
+          image: rommapp/romm:5.4.1
           env:
             - name: DB_HOST
               value: romm-db

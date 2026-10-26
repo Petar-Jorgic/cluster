@@ -23,6 +23,8 @@ spec:
       containers:
         - name: uptime-kuma
           image: louislam/uptime-kuma:latest
+          # sonst bleibt bei :latest das alte Image im Node-Cache liegen
+          imagePullPolicy: Always
           ports:
             - containerPort: 3001
           env:

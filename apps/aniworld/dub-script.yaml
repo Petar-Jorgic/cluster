@@ -9,7 +9,10 @@ data:
     # Laedt alle German-Dub-Folgen von $SERIES und meldet das Ergebnis an Gotify.
     pip install -q --upgrade aniworld 2>/dev/null
     touch /tmp/start
-    aniworld --no-menu --action Download --language 'German Dub' --provider VOE \
+    # Kein --provider: aniworld nimmt ANIWORLD_PROVIDER und arbeitet bei
+    # Ausfall ANIWORLD_PROVIDER_FALLBACK_ORDER ab. --provider wuerde es
+    # auf einen einzigen Anbieter festnageln.
+    aniworld --no-menu --action Download --language 'German Dub' \
       --output /app/downloads $SERIES > /tmp/log 2>&1
     rc=$?
     tail -n 50 /tmp/log

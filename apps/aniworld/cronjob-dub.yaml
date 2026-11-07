@@ -1,4 +1,4 @@
-# Laedt woechentlich alle Folgen mit deutscher Synchro nach. Vorhandene
+# Laedt taeglich alle Folgen mit deutscher Synchro nach. Vorhandene
 # Dateien ueberspringt aniworld; Folgen ohne German Dub werden ausgelassen
 # und kommen automatisch, sobald die Synchro erscheint.
 # Weitere Serien: URL an SERIES anhaengen (durch Leerzeichen getrennt).
@@ -8,7 +8,7 @@ metadata:
   name: aniworld-german-dub
   namespace: aniworld
 spec:
-  schedule: "0 5 * * 0"
+  schedule: "0 5 * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 2
   failedJobsHistoryLimit: 2
@@ -30,7 +30,15 @@ spec:
                 - name: PYTHONPATH
                   value: /home/aniworld/.local/lib/python3.13/site-packages
                 - name: SERIES
-                  value: https://aniworld.to/anime/stream/one-piece
+                  value: >-
+                    https://aniworld.to/anime/stream/one-piece
+                    https://aniworld.to/anime/stream/solo-leveling
+                # Reihenfolge der Anbieter: faellt VOE aus, wird der naechste
+                # versucht, statt die Folge als fehlgeschlagen zu melden.
+                - name: ANIWORLD_PROVIDER
+                  value: VOE
+                - name: ANIWORLD_PROVIDER_FALLBACK_ORDER
+                  value: VOE,Vidmoly,Vidoza,Doodstream
                 - name: GOTIFY_URL
                   value: http://gotify.gotify.svc:80
                 - name: GOTIFY_TOKEN

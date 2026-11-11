@@ -25,22 +25,31 @@ folgenden drei Schritte durch sind.
 
 ### 1. GitHub-Token anlegen
 
-Ein **fine-grained PAT** auf <https://github.com/settings/personal-access-tokens>.
-Kein GitHub App Token: ein App-Token ist auf *eine* Org gescoped, die
-Kundenrepos liegen aber in vier verschiedenen Orgs. Ein PAT, mit dem ich
-ueberall Collaborator bin, erledigt alle sechs Repos in einem Lauf.
+Ein **Classic PAT** auf <https://github.com/settings/tokens>, Scope `repo`.
 
-Zugriff auf die sechs Repos aus der Tabelle, mit:
+Warum classic und nicht fine-grained: ein fine-grained Token ist laut
+GitHub-Doku auf die Repos *eines* Owners begrenzt ("Each token is limited to
+access resources owned by a single user or organization"). Die Kundenrepos
+liegen in vier verschiedenen Orgs, dazu kommt der eigene Account -- das
+waeren fuenf Tokens, und Renovate nimmt pro Lauf nur eines. Ein Classic PAT
+umspannt alle Orgs und den eigenen Account.
 
-| Permission | Level | Wofuer |
-|---|---|---|
-| Contents | Read and write | Branches fuer die PRs |
-| Pull requests | Read and write | PRs aufmachen |
-| Issues | Read and write | Dependency Dashboard |
-| Metadata | Read-only | wird automatisch verlangt |
+Ein GitHub App Token hat dasselbe Problem: auch das ist auf eine Org
+gescoped.
 
-Dazu auf Org-Ebene **Members: Read-only**, sonst kann Renovate die
-Kundenrepos nicht aufloesen.
+Der Scope `repo` deckt alles ab, was Renovate braucht -- Branches, PRs und
+Issues (fuer das Dependency Dashboard). `workflow` ist nur noetig, wenn
+Renovate auch Dateien unter `.github/workflows/` anfassen soll; derzeit hat
+keines der sechs Repos Workflows.
+
+Zwei Haken:
+
+- Der Scope ist breit. `repo` gilt fuer *alle* Repos, auf die ich Zugriff
+  habe, nicht nur die sechs in der Liste. Die Einschraenkung auf die sechs
+  macht allein Renovates `repositories`-Liste.
+- Orgs koennen Classic PATs blockieren. Falls eine Kunden-Org das tut,
+  erscheint sie nicht bzw. der Zugriff schlaegt fehl -- dann muss ein Admin
+  dort den Zugriff erlauben, oder das Repo fliegt aus der Liste.
 
 Laufzeit begrenzen (90 Tage) und im Kalender vermerken -- laeuft das Token
 ab, scheitert der Job still.

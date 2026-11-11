@@ -1,0 +1,79 @@
+# Renovate laeuft als nightly Batch-Job, nicht als Server. Das OSS-Image
+# (AGPL-3.0) braucht keinen Mend-Account -- im Gegensatz zu "Renovate CE".
+#
+# ACHTUNG: suspend steht auf true. Der Job laeuft erst, wenn das
+# SealedSecret mit dem GitHub-Token existiert -- siehe README.md.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: renovate
+  namespace: renovate
+spec:
+  schedule: "0 3 * * *"
+  timeZone: "Europe/Vienna"
+  suspend: true
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      # 5 Repos ueber npm/Maven/Docker/pip. Der erste Lauf ist der
+      # langsamste, danach greift der Cache auf dem PVC.
+      activeDeadlineSeconds: 3600
+      template:
+        spec:
+          restartPolicy: Never
+          # Muss auf pj laufen, nicht auf den arm64-Workern:
+          #  - die Worker haben 3,8Gi RAM gesamt, das memory-Limit unten ist
+          #    4Gi -- die Lockfile-Aufloesung wuerde dort OOM-gekillt.
+          #  - local-path bindet das PVC an den Node, auf dem der Pod zuerst
+          #    landet. Ohne Pin haengt der Cache fuer immer auf einem Worker.
+          # Gleiches Muster wie card-sniper-ci/triggers.yaml.
+          nodeSelector:
+            kubernetes.io/hostname: pj
+          securityContext:
+            # Das offizielle Image laeuft als UID 12021 (aus dem
+            # Image-Manifest verifiziert). Ohne fsGroup kann es nicht in
+            # das gemountete Cache-Volume schreiben.
+            runAsUser: 12021
+            runAsGroup: 12021
+            fsGroup: 12021
+          containers:
+            - name: renovate
+              image: renovate/renovate:44.234.1
+              env:
+                - name: RENOVATE_CONFIG_FILE
+                  value: /config/config.js
+                # Repo-Clones und Cache landen auf dem PVC statt im
+                # ephemeren Pod-Dateisystem.
+                - name: RENOVATE_BASE_DIR
+                  value: /cache
+                - name: LOG_LEVEL
+                  value: info
+                - name: RENOVATE_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: renovate-github-token
+                      key: RENOVATE_TOKEN
+              volumeMounts:
+                - name: config
+                  mountPath: /config
+                  readOnly: true
+                - name: cache
+                  mountPath: /cache
+              resources:
+                requests:
+                  cpu: 200m
+                  memory: 1Gi
+                limits:
+                  # Lockfile-Aufloesung fuer 5 npm-Projekte zieht Speicher.
+                  cpu: "2"
+                  memory: 4Gi
+          volumes:
+            - name: config
+              configMap:
+                name: renovate-config
+            - name: cache
+              persistentVolumeClaim:
+                claimName: renovate-cache

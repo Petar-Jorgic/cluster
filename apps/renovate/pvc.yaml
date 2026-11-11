@@ -1,0 +1,19 @@
+# Ohne Cache klont Renovate jede Nacht alle 5 Repos neu und loest alle
+# Lockfiles von vorn auf.
+#
+# local-path bindet das Volume an den Node, auf dem der erste Pod landet
+# (WaitForFirstConsumer). Deshalb hat der CronJob einen nodeSelector auf pj
+# -- sonst landet der Cache auf einem der arm64-Worker und Renovate kommt
+# nie wieder davon weg.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: renovate-cache
+  namespace: renovate
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 20Gi

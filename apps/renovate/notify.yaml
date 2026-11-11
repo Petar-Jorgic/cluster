@@ -1,0 +1,178 @@
+# Gotify-Benachrichtigung nach dem nightly Renovate-Lauf.
+#
+# Bewusst ein EIGENER CronJob und kein Wrapper um das Renovate-Command: ein
+# Fehler im Benachrichtigungs-Skript soll den Renovate-Lauf nicht mitreissen.
+# Laeuft 30 Minuten nach Renovate (03:00 -> 03:30).
+#
+# Meldet drei Dinge:
+#   1. neue Renovate-PRs, cardomat und vido als [LIVE] markiert und mit
+#      hoeherer Prioritaet -- die beiden Shops sind in taeglicher Benutzung
+#   2. ein fehlgeschlagener Renovate-Lauf
+#   3. ein ausgebliebener Renovate-Lauf (stiller Ausfall, z.B. abgelaufenes
+#      GitHub-Token) -- genau der Fall, den man sonst wochenlang nicht merkt
+#
+# Keine Nachricht, wenn nichts passiert ist. Gleiche Linie wie cluster-cleanup.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: renovate-notify
+  namespace: renovate
+---
+# Namespace-scoped Role, keine ClusterRole: braucht nur die eigenen Jobs.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: renovate-notify
+  namespace: renovate
+rules:
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: renovate-notify
+  namespace: renovate
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: renovate-notify
+subjects:
+  - kind: ServiceAccount
+    name: renovate-notify
+    namespace: renovate
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: renovate-notify
+  namespace: renovate
+spec:
+  schedule: "30 3 * * *"
+  timeZone: "Europe/Vienna"
+  # Wie beim Renovate-CronJob: laeuft erst, wenn das Gotify-SealedSecret
+  # existiert. Siehe README.md.
+  suspend: true
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 300
+      template:
+        spec:
+          restartPolicy: Never
+          serviceAccountName: renovate-notify
+          nodeSelector:
+            kubernetes.io/hostname: pj
+          containers:
+            - name: notify
+              image: alpine/k8s:1.34.1
+              env:
+                - name: GOTIFY_URL
+                  value: "http://gotify.gotify.svc:80"
+                - name: GOTIFY_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: renovate-gotify
+                      key: GOTIFY_TOKEN
+                # Dasselbe Secret, das Renovate benutzt -- gleicher Namespace,
+                # also kein zweites GitHub-Token noetig.
+                - name: GITHUB_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: renovate-github-token
+                      key: RENOVATE_TOKEN
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -u
+                  command -v curl >/dev/null 2>&1 || apk add --no-cache curl >/dev/null 2>&1 || true
+                  command -v jq   >/dev/null 2>&1 || apk add --no-cache jq   >/dev/null 2>&1 || true
+
+                  GH="https://api.github.com"
+                  REPOS="Petar-Jorgic/RodeoTCG Petar-Jorgic/card-sniper Raffaelio/cardomat LisasSeelenpost/tarot-beratung Michael-VIDO/vido"
+
+                  # busybox date kennt kein '-90 minutes', aber '-d @epoch'
+                  # (gleicher Trick wie in cluster-cleanup). 90 Minuten
+                  # Fenster deckt den 03:00-Lauf mit Puffer ab.
+                  SINCE=$(date -u -d @$(( $(date +%s) - 5400 )) +%Y-%m-%dT%H:%M:%SZ)
+                  echo "Fenster ab $SINCE"
+
+                  notify() {
+                    BODY=$(jq -n --arg t "$1" --arg m "$2" --argjson p "$3" \
+                      '{title:$t,message:$m,priority:$p}')
+                    curl -fsS -X POST "${GOTIFY_URL}/message?token=${GOTIFY_TOKEN}" \
+                      -H "Content-Type: application/json" --data "$BODY" >/dev/null 2>&1 \
+                      && echo "gotify: sent ($1)" || echo "gotify: FAILED ($1)"
+                  }
+
+                  # --- 1. Lief Renovate ueberhaupt, und wie ging es aus? ---
+                  # Zeitvergleich absichtlich in jq und nicht in der Shell:
+                  # busybox `test` kennt kein `<` fuer Strings, das ist eine
+                  # Bash-Erweiterung und wuerde hier abbrechen.
+                  JOBS=$(kubectl get jobs -n renovate -o json 2>/dev/null || echo '{"items":[]}')
+                  MINE='[.items[] | select((.metadata.ownerReferences // [])[]?.name == "renovate")
+                                 | select(.metadata.creationTimestamp > $s)]'
+
+                  RECENT=$(printf '%s' "$JOBS" | jq -r --arg s "$SINCE" \
+                    "${MINE} | length" 2>/dev/null || echo 0)
+                  FAILED=$(printf '%s' "$JOBS" | jq -r --arg s "$SINCE" \
+                    "${MINE} | map(select(((.status.conditions // []) | map(select(.status==\"True\") | .type)) | index(\"Failed\"))) | length" 2>/dev/null || echo 0)
+                  echo "Renovate-Jobs im Fenster: $RECENT, davon fehlgeschlagen: $FAILED"
+
+                  if [ "$RECENT" -eq 0 ]; then
+                    notify "Renovate ausgefallen" \
+                      "Seit ${SINCE} ist kein Renovate-Job gelaufen. Haeufigste Ursache: abgelaufenes GitHub-Token. Pruefen mit: kubectl get cronjob,job -n renovate" 8
+                  elif [ "$FAILED" -gt 0 ]; then
+                    notify "Renovate fehlgeschlagen" \
+                      "Der nightly Lauf ist gescheitert. Logs: kubectl logs -n renovate job/<name>, Namen via kubectl get job -n renovate" 8
+                  fi
+
+                  # --- 2. Neue Renovate-PRs sammeln ---
+                  TOTAL=0
+                  LIVE=0
+                  MSG=""
+                  for REPO in $REPOS; do
+                    J=$(curl -fsS -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+                          -H "Accept: application/vnd.github+json" \
+                          "${GH}/repos/${REPO}/pulls?state=open&sort=created&direction=desc&per_page=50" 2>/dev/null) || {
+                      echo "WARN: ${REPO} nicht abfragbar"; continue; }
+
+                    # Renovate-PRs erkennt man am Branch-Prefix, nicht am
+                    # Author -- der ist bei einem PAT der Kontoinhaber.
+                    LINES=$(printf '%s' "$J" | jq -r --arg s "$SINCE" '
+                      [.[] | select(.head.ref | startswith("renovate/"))
+                           | select(.created_at > $s)]
+                      | .[] | "  #\(.number) \(.title)"' 2>/dev/null)
+
+                    N=$(printf '%s\n' "$LINES" | grep -c . || true)
+                    [ "$N" -eq 0 ] && continue
+                    TOTAL=$((TOTAL + N))
+
+                    case "$REPO" in
+                      Raffaelio/cardomat|Michael-VIDO/vido) TAG=" [LIVE]"; LIVE=1 ;;
+                      *) TAG="" ;;
+                    esac
+                    MSG="${MSG}${REPO}${TAG}
+                  ${LINES}
+                  "
+                  done
+
+                  echo "neue Renovate-PRs: $TOTAL (live betroffen: $LIVE)"
+                  if [ "$TOTAL" -gt 0 ]; then
+                    if [ "$LIVE" -eq 1 ]; then PRIO=7; else PRIO=4; fi
+                    notify "Renovate: ${TOTAL} neue PR(s)" "$MSG" "$PRIO"
+                  else
+                    echo "keine neuen PRs, keine Benachrichtigung"
+                  fi
+              resources:
+                requests:
+                  cpu: 20m
+                  memory: 48Mi
+                limits:
+                  cpu: 300m
+                  memory: 192Mi

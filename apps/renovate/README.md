@@ -105,13 +105,65 @@ Soll ein Kundenrepo auch ohne Nachfrage PRs bekommen, das Repo in
 `configmap.yaml` in die `matchRepositories`-Liste der zweiten `packageRule`
 aufnehmen.
 
-## Gotify
+## Gotify (notify.yaml)
 
-Absichtlich nicht eingebaut. Dafuer muesste das Container-Command um einen
-Shell-Wrapper erweitert werden, und ein Fehler darin laesst den ganzen Lauf
-scheitern -- fuer einen Job, der sowieso ueber GitHub-Issues benachrichtigt,
-ein schlechter Tausch. Fehlgeschlagene Jobs sieht man ueber die bestehende
-Monitoring-/alertmanager-gotify-Kette.
+Ein **eigener** CronJob um 03:30, nicht als Wrapper um das Renovate-Command:
+ein Fehler im Benachrichtigungs-Skript soll den Renovate-Lauf nicht
+mitreissen.
+
+Meldet drei Dinge und schweigt sonst:
+
+| Ereignis | Prioritaet |
+|---|---|
+| neue Renovate-PRs in cardomat oder vido | 7 |
+| neue Renovate-PRs nur in den uebrigen Repos | 4 |
+| Renovate-Lauf fehlgeschlagen | 8 |
+| kein Renovate-Lauf im Zeitfenster | 8 |
+
+cardomat und vido sind hoeher priorisiert, weil die beiden Shops live und in
+taeglicher Benutzung sind.
+
+Der letzte Punkt ist der wichtigste: ein stiller Ausfall -- typischerweise ein
+abgelaufenes GitHub-Token -- faellt sonst wochenlang nicht auf. Genau das
+Problem, das dieses Setup loesen soll.
+
+Renovate-PRs werden am Branch-Prefix `renovate/` erkannt, nicht am Author:
+mit einem PAT ist der Author der Kontoinhaber, nicht ein Bot. Dadurch werden
+Dependabot-PRs (`dependabot/...`) korrekt ignoriert.
+
+### Inbetriebnahme
+
+Der CronJob ist mit `suspend: true` ausgeliefert. Es braucht einen
+Gotify-App-Token:
+
+```sh
+printf 'Gotify-Token: '; read -rs GT; echo
+kubectl create secret generic renovate-gotify \
+  --namespace renovate \
+  --from-literal=GOTIFY_TOKEN="$GT" \
+  --dry-run=client -o yaml \
+  | kubeseal --format yaml --controller-namespace kube-system \
+  > apps/renovate/gotify-sealedsecret.yaml
+unset GT
+```
+
+SealedSecrets sind auf Name **und** Namespace versiegelt -- der Token aus
+`cluster-cleanup-gotify` laesst sich nicht wiederverwenden, selbst wenn es
+derselbe Gotify-App-Token waere.
+
+Dann in `kustomization.yaml` die Zeile `- gotify-sealedsecret.yaml`
+einkommentieren und in `notify.yaml` `suspend` auf `false` setzen.
+
+Testlauf, ohne bis 03:30 zu warten:
+
+```sh
+kubectl create job -n renovate --from=cronjob/renovate-notify notify-test
+kubectl logs -n renovate -f job/notify-test
+```
+
+Beim Testlauf ausserhalb des 90-Minuten-Fensters nach einem Renovate-Lauf
+kommt eine "Renovate ausgefallen"-Meldung. Das ist korrekt und zeigt, dass
+die Ausfallerkennung funktioniert.
 
 ## Updates des Bots selbst
 

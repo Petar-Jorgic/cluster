@@ -5,7 +5,9 @@ resources:
   - pvc.yaml
   - configmap.yaml
   - cronjob.yaml
-  # github-token-sealedsecret.yaml fehlt hier absichtlich: das Secret muss
-  # erst lokal mit kubeseal erzeugt werden (siehe README.md). Erst dann
-  # diese Zeile einkommentieren.
   - github-token-sealedsecret.yaml
+  - notify.yaml
+  # gotify-sealedsecret.yaml fehlt hier absichtlich: das Secret muss erst
+  # lokal mit kubeseal erzeugt werden (siehe README.md). Erst dann diese
+  # Zeile einkommentieren und in notify.yaml suspend auf false setzen.
+  # - gotify-sealedsecret.yaml

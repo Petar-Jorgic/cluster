@@ -36,10 +36,17 @@ umspannt alle Orgs und den eigenen Account.
 Ein GitHub App Token hat dasselbe Problem: auch das ist auf eine Org
 gescoped.
 
-Der Scope `repo` deckt alles ab, was Renovate braucht -- Branches, PRs und
-Issues (fuer das Dependency Dashboard). `workflow` ist nur noetig, wenn
-Renovate auch Dateien unter `.github/workflows/` anfassen soll; derzeit hat
-keines der fuenf Repos Workflows.
+Scopes: **`repo` und `workflow`**.
+
+`repo` deckt Branches, PRs und Issues ab (letztere fuer das Dependency
+Dashboard). `workflow` ist zusaetzlich noetig, weil RodeoTCG (2), cardomat
+(1) und vido (1) GitHub-Actions-Workflows haben und Renovate dort
+`actions/*`-Updates vorschlaegt. Ohne den Scope verweigert GitHub jeden Push,
+der eine Datei unter `.github/workflows/` anfasst -- die Updates stehen dann
+im Dashboard, scheitern aber beim Anhaken.
+
+Der Scope laesst sich bei einem Classic PAT nachtraeglich ergaenzen, ohne das
+Token neu zu erzeugen. Das SealedSecret muss dann nicht neu erstellt werden.
 
 Zwei Haken:
 

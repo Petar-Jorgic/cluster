@@ -1,8 +1,13 @@
 # Renovate laeuft als nightly Batch-Job, nicht als Server. Das OSS-Image
 # (AGPL-3.0) braucht keinen Mend-Account -- im Gegensatz zu "Renovate CE".
 #
-# ACHTUNG: suspend steht auf true. Der Job laeuft erst, wenn das
-# SealedSecret mit dem GitHub-Token existiert -- siehe README.md.
+# PAUSIERT (11.11.2026): suspend steht vorruebergehend auf true, bis die drei
+# Kunden informiert sind. Der erste Lauf legt in cardomat, tarot-beratung und
+# vido je ein Dependency-Dashboard-Issue an -- cardomat und vido sind live und
+# in taeglicher Benutzung, das soll niemanden unangekuendigt treffen.
+#
+# Zum Fortsetzen: suspend auf false, committen, pushen. Ein `kubectl patch`
+# genuegt nicht -- ArgoCD dreht das mit selfHeal innerhalb von Minuten zurueck.
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -11,7 +16,7 @@ metadata:
 spec:
   schedule: "0 3 * * *"
   timeZone: "Europe/Vienna"
-  suspend: false
+  suspend: true
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 2

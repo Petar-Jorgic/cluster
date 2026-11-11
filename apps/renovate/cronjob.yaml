@@ -18,7 +18,7 @@ spec:
   jobTemplate:
     spec:
       backoffLimit: 1
-      # 6 Repos ueber npm/NuGet/Maven/Docker/pip. Der erste Lauf ist der
+      # 5 Repos ueber npm/Maven/Docker/pip. Der erste Lauf ist der
       # langsamste, danach greift der Cache auf dem PVC.
       activeDeadlineSeconds: 3600
       template:

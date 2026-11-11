@@ -48,11 +48,12 @@ data:
         'Petar-Jorgic/card-sniper',
         // Kunden
         'Raffaelio/cardomat',
-        'Dinamo77/SW_Install',
         'LisasSeelenpost/tarot-beratung',
         'Michael-VIDO/vido',
-        // cachyos-setup fehlt absichtlich: reine Dotfiles, kein Manifest,
-        // das Renovate lesen koennte.
+        // Nicht dabei:
+        // - Dinamo77/SW_Install: ausdruecklich nicht gewuenscht.
+        // - Petar-Jorgic/cachyos-setup: reine Dotfiles, kein Manifest,
+        //   das Renovate lesen koennte.
       ],
 
       packageRules: [

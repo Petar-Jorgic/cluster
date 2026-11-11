@@ -3,15 +3,14 @@
 Nightly Dependency-Bot fuer meine Projekt-Repos. Selbst gehostet, OSS-Image
 (AGPL-3.0), kein Mend-Account.
 
-Deckt alle Oekosysteme der Projekte in einem Lauf ab: npm, NuGet (.NET 10),
-Maven (Quarkus), Docker und pip.
+Deckt alle Oekosysteme der Projekte in einem Lauf ab: npm, Maven (Quarkus),
+Docker und pip.
 
 | Repo | Org | Stack |
 |---|---|---|
 | RodeoTCG | eigen | npm (Shopify Hydrogen) |
 | card-sniper | eigen | pip, Docker |
 | cardomat | Raffaelio | npm (Shopify Hydrogen) |
-| SW_Install | Dinamo77 | NuGet, npm, Docker |
 | tarot-beratung | LisasSeelenpost | Maven, npm, Docker |
 | vido | Michael-VIDO | Maven, npm, Docker |
 
@@ -30,8 +29,8 @@ Ein **Classic PAT** auf <https://github.com/settings/tokens>, Scope `repo`.
 Warum classic und nicht fine-grained: ein fine-grained Token ist laut
 GitHub-Doku auf die Repos *eines* Owners begrenzt ("Each token is limited to
 access resources owned by a single user or organization"). Die Kundenrepos
-liegen in vier verschiedenen Orgs, dazu kommt der eigene Account -- das
-waeren fuenf Tokens, und Renovate nimmt pro Lauf nur eines. Ein Classic PAT
+liegen in drei verschiedenen Orgs, dazu kommt der eigene Account -- das
+waeren vier Tokens, und Renovate nimmt pro Lauf nur eines. Ein Classic PAT
 umspannt alle Orgs und den eigenen Account.
 
 Ein GitHub App Token hat dasselbe Problem: auch das ist auf eine Org
@@ -40,12 +39,12 @@ gescoped.
 Der Scope `repo` deckt alles ab, was Renovate braucht -- Branches, PRs und
 Issues (fuer das Dependency Dashboard). `workflow` ist nur noetig, wenn
 Renovate auch Dateien unter `.github/workflows/` anfassen soll; derzeit hat
-keines der sechs Repos Workflows.
+keines der fuenf Repos Workflows.
 
 Zwei Haken:
 
 - Der Scope ist breit. `repo` gilt fuer *alle* Repos, auf die ich Zugriff
-  habe, nicht nur die sechs in der Liste. Die Einschraenkung auf die sechs
+  habe, nicht nur die fuenf in der Liste. Die Einschraenkung auf die fuenf
   macht allein Renovates `repositories`-Liste.
 - Orgs koennen Classic PATs blockieren. Falls eine Kunden-Org das tut,
   erscheint sie nicht bzw. der Zugriff schlaegt fehl -- dann muss ein Admin
@@ -95,7 +94,7 @@ Standardmaessig entsteht **kein PR von allein**. Renovate legt pro Repo ein
 Issue "Dependency Dashboard" an und baut einen PR erst, wenn dort eine
 Checkbox angehakt wird (`dependencyDashboardApproval: true`).
 
-Das ist Absicht: vier der sechs Repos gehoeren Kunden. In cardomat sind
+Das ist Absicht: drei der fuenf Repos gehoeren Kunden. In cardomat sind
 ~27 Dependencies veraltet -- ohne diese Bremse stehen da ueber Nacht
 entsprechend viele PRs im Repo eines Kunden.
 

@@ -24,6 +24,14 @@ spec:
       template:
         spec:
           restartPolicy: Never
+          # Muss auf pj laufen, nicht auf den arm64-Workern:
+          #  - die Worker haben 3,8Gi RAM gesamt, das memory-Limit unten ist
+          #    4Gi -- die Lockfile-Aufloesung wuerde dort OOM-gekillt.
+          #  - local-path bindet das PVC an den Node, auf dem der Pod zuerst
+          #    landet. Ohne Pin haengt der Cache fuer immer auf einem Worker.
+          # Gleiches Muster wie card-sniper-ci/triggers.yaml.
+          nodeSelector:
+            kubernetes.io/hostname: pj
           securityContext:
             # Das offizielle Image laeuft als UID 12021 (aus dem
             # Image-Manifest verifiziert). Ohne fsGroup kann es nicht in

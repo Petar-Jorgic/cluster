@@ -1,0 +1,14 @@
+# Ohne Cache klont Renovate jede Nacht alle 6 Repos neu und loest alle
+# Lockfiles von vorn auf. local-path pinnt das Volume auf den Node pj.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: renovate-cache
+  namespace: renovate
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 20Gi

@@ -1,0 +1,79 @@
+# Zentrale Renovate-Konfiguration fuer alle Projekt-Repos.
+#
+# Bewusst hier und nicht als renovate.json in den einzelnen Repos: 4 der 6
+# Repos liegen in fremden Orgs (Kundenprojekte), da soll nichts committet
+# werden. Mit onboarding=false + requireConfig=optional ist diese Datei die
+# einzige Quelle der Wahrheit.
+#
+# Dieses Repo (Petar-Jorgic/cluster) steht absichtlich NICHT in der Liste --
+# die Helm-Chart-Versionen hier aktualisiert schon der woechentliche
+# auto-update-Job. Sonst wuerden sich beide ins Gehege kommen.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: renovate-config
+  namespace: renovate
+data:
+  config.js: |
+    module.exports = {
+      platform: 'github',
+      token: process.env.RENOVATE_TOKEN,
+
+      gitAuthor: 'Renovate Bot <renovate@cluster.lan>',
+      timezone: 'Europe/Vienna',
+
+      extends: ['config:recommended'],
+
+      // Kein Onboarding-PR, keine renovate.json in den Repos.
+      onboarding: false,
+      requireConfig: 'optional',
+
+      // --- Sicherheitsnetz ------------------------------------------------
+      // Renovate legt pro Repo EIN Issue an ("Dependency Dashboard") und
+      // baut erst dann einen PR, wenn du dort eine Checkbox anhakst.
+      // Wichtig: ohne das stehen in cardomat ueber Nacht ~27 PRs im Repo
+      // eines Kunden.
+      dependencyDashboard: true,
+      dependencyDashboardApproval: true,
+
+      // Zweite Bremse, falls oben mal gelockert wird.
+      prConcurrentLimit: 5,
+      prHourlyLimit: 2,
+
+      labels: ['dependencies'],
+
+      repositories: [
+        // eigene
+        'Petar-Jorgic/RodeoTCG',
+        'Petar-Jorgic/card-sniper',
+        // Kunden
+        'Raffaelio/cardomat',
+        'Dinamo77/SW_Install',
+        'LisasSeelenpost/tarot-beratung',
+        'Michael-VIDO/vido',
+        // cachyos-setup fehlt absichtlich: reine Dotfiles, kein Manifest,
+        // das Renovate lesen koennte.
+      ],
+
+      packageRules: [
+        {
+          // Minor/Patch gesammelt in einen PR pro Repo statt 20 einzelne.
+          matchUpdateTypes: ['minor', 'patch', 'pin', 'digest'],
+          groupName: 'non-major',
+        },
+        {
+          // Nur eigene Repos: Minor/Patch ohne Nachfrage.
+          // Kundenrepos bleiben bei Dashboard-Approval.
+          matchRepositories: [
+            'Petar-Jorgic/RodeoTCG',
+            'Petar-Jorgic/card-sniper',
+          ],
+          matchUpdateTypes: ['minor', 'patch'],
+          dependencyDashboardApproval: false,
+        },
+      ],
+
+      vulnerabilityAlerts: {
+        labels: ['security'],
+      },
+    };

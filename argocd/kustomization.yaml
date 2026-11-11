@@ -46,3 +46,4 @@ resources:
   - listenarr.yaml
   - bookshelf.yaml
   - tracearr.yaml
+  - renovate.yaml
